@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:poly_museum/simple_plugin_view.dart';
 
 void main() => runApp(MyApp());
 
@@ -102,9 +103,11 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
+        onPressed: () {
+          Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => SimplePluginView()));
+        },
         tooltip: 'Increment',
-        child: Icon(Icons.add),
+        child: Icon(Icons.arrow_forward),
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
