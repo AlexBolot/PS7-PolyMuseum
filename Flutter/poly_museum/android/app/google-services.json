@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "400300334018",
+    "firebase_url": "https://polymuseum-ps7.firebaseio.com",
+    "project_id": "polymuseum-ps7",
+    "storage_bucket": "polymuseum-ps7.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:400300334018:android:7a610f7b5f0b8d35",
+        "android_client_info": {
+          "package_name": "polytech.al.imh.polymuseum"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "400300334018-43vhuge2in9dk8nb02sqdtp02tli76of.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "polytech.al.imh.polymuseum",
+            "certificate_hash": "5dc52bd15539abc265eeaea4166d5e5763f85bd5"
+          }
+        },
+        {
+          "client_id": "400300334018-69q9rc55g0jlend9hegjcgvk3fnrbjtm.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDG___zbYC9BfTiUvT844V2Ewj9eGzXE3A"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "400300334018-69q9rc55g0jlend9hegjcgvk3fnrbjtm.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
