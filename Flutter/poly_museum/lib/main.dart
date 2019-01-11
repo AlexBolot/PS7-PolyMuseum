@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'ColorChanger.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 //import 'package:poly_museum/simple_plugin_view.dart';
 
 void main() => runApp(MyApp());
@@ -7,12 +9,19 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    Color defaultColor = Colors.blue;
+    
     return MaterialApp(
       title: 'PolyMuseum',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primarySwatch: defaultColor,
       ),
-      home: MyHomePage(title: 'PolyMuseum Menu'),
+      home: ColoredWidget(
+        child : MyHomePage(
+          title: 'PolyMuseum Menu'
+        ),
+        defaultColor : defaultColor
+      ),
     );
   }
 }
@@ -150,6 +159,14 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Icon(Icons.add),
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );
+
+  }
+
+  @override
+  void initState() {
+    Firestore.instance.collection('appearance').document('current').get().then((appearance) {
+        ColorChanger.of(context).color = Color.fromARGB(0xFF, appearance['color_red'], appearance['color_green'], appearance['color_blue']);
+    });
   }
 
   void enterCode() {}
