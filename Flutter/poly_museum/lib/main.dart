@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:poly_museum/ObjectResearchGameView.dart';
 
 void main() => runApp(MyApp());
 
@@ -101,11 +102,13 @@ class _MyHomePageState extends State<MyHomePage> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => ObjectResearchGameView()));
+          },
+          tooltip: 'Increment',
+          child: Icon(Icons.games),
+        ) // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
