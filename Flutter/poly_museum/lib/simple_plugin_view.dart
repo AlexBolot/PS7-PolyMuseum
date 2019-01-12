@@ -38,12 +38,12 @@ class _SimplePluginViewState extends State<SimplePluginView> {
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),
         onPressed: () async {
-          final channel = const MethodChannel('channel:alexandre.bolot/plugin');
-          String result = await channel.invokeMethod('getMessage') as String;
+          final channel = const MethodChannel('channel:polytech.al.imh/plugin');
+          List<String> results = (await channel.invokeMethod('loadPlugins')).cast<String>();
 
-          print(result);
+          print(results);
 
-          setState(() => _list.add(result));
+          setState(() => _list.addAll(results));
         },
       ),
     );

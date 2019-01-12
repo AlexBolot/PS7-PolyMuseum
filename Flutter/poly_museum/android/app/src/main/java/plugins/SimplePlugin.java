@@ -12,11 +12,11 @@
 
 package plugins;
 
-import java.util.UUID;
+import polytech.al.imh.polymuseum.ExtensionPoint;
 
-public class SimplePlugin {
+public class SimplePlugin extends Plugin {
 
-    public String getMessage(){
-        return UUID.randomUUID().toString().substring(0,7);
+    public SimplePlugin(ExtensionPoint extensionPoint) {
+        super(extensionPoint);
     }
 }
