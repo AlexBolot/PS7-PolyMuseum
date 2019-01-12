@@ -1,16 +1,12 @@
 import 'package:flutter/material.dart';
-import 'ColorChanger.dart';
 
 final _themeKey = new GlobalKey(debugLabel: 'pm_theme');
 
 class ColoredWidget extends StatefulWidget {
   final child;
   final Color defaultColor;
-  
-  ColoredWidget({
-      this.child,
-      this.defaultColor
-  }) : super(key : _themeKey);
+
+  ColoredWidget({this.child, this.defaultColor}) : super(key: _themeKey);
 
   @override
   ColoredWidgetState createState() => ColoredWidgetState(defaultColor);
@@ -31,14 +27,14 @@ class ColoredWidgetState extends State<ColoredWidget> {
 
   @override
   Widget build(BuildContext context) {
-    ThemeData theme = new ThemeData(primaryColor : _color);
+    ThemeData theme = ThemeData(primaryColor: _color);
 
-    return new ColorChanger(
-      themeKey : _themeKey,
-      child  : new Theme(
-        data : theme,
-        child : widget.child,
-      )
+    return ColorChanger(
+      themeKey: _themeKey,
+      child: Theme(
+        data: theme,
+        child: widget.child,
+      ),
     );
   }
 }
@@ -51,11 +47,9 @@ class ColorChanger extends InheritedWidget {
   final ThemeData theme;
   final GlobalKey _themeKey;
 
-  ColorChanger({
-      themeKey,
-      this.theme,
-      child
-  }) : _themeKey = themeKey, super(child : child);
+  ColorChanger({themeKey, this.theme, child})
+      : _themeKey = themeKey,
+        super(child: child);
 
   set color(Color color) {
     (_themeKey.currentState as ColoredWidgetState)?.color = color;
