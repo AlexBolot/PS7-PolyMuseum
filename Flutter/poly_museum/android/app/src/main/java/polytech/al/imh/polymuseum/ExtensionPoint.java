@@ -1,19 +1,14 @@
 package polytech.al.imh.polymuseum;
 
-import java.util.ArrayList;
-import java.util.List;
+import org.json.JSONObject;
 
-import plugins.Plugin;
+public abstract class ExtensionPoint {
 
-public abstract class ExtensionPoint{
-
-    private List<Plugin> plugins = new ArrayList<>();
-
-    public void registerAsPlugin(Plugin plugin) {
-        plugins.add(plugin);
+    public JSONObject getConfigFile(ConfigType configType) {
+        return null;
     }
 
-    public List<Plugin> registeredPlugins() {
-        return plugins;
+    public enum ConfigType {
+        ThemeConfig
     }
 }

@@ -1,13 +1,10 @@
 package plugins;
 
-
-import polytech.al.imh.polymuseum.ExtensionPoint;
-
 public abstract class Plugin {
 
-    protected ExtensionPoint extensionPoint;
+    public abstract String getName();
 
-    public Plugin(ExtensionPoint extensionPoint) {
-        this.extensionPoint = extensionPoint;
+    public enum PluginType{
+        THEME_PLUGIN
     }
 }

@@ -1,11 +1,14 @@
 package plugins;
 
-import polytech.al.imh.polymuseum.ExtensionPoint;
+import polytech.al.imh.polymuseum.ThemeExtensionPoint;
 
 public abstract class ThemePlugin extends Plugin {
 
-    public ThemePlugin(ExtensionPoint extensionPoint) {
-        super(extensionPoint);
+    protected ThemeExtensionPoint themeExtensionPoint;
+
+    public void plugTo(ThemeExtensionPoint themeExtensionPoint){
+        this.themeExtensionPoint = themeExtensionPoint;
+        this.themeExtensionPoint.registerAsPlugin(this);
     }
 
     public abstract int getPrimaryColor();

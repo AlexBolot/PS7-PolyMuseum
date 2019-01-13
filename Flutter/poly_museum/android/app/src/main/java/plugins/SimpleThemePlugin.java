@@ -1,26 +1,25 @@
 package plugins;
 
-import polytech.al.imh.polymuseum.ExtensionPoint;
-
 public class SimpleThemePlugin extends ThemePlugin {
 
-    public SimpleThemePlugin(ExtensionPoint extensionPoint) {
-        super(extensionPoint);
+    @Override
+    public String getName() {
+        return "SimplePluginName";
     }
 
     @Override
     public int getPrimaryColor() {
-        return 0;
+        return 0x4286F4;
     }
 
     @Override
     public int getSecondaryColor() {
-        return 0;
+        return 0x0044B2;
     }
 
     @Override
     public int getBackground() {
-        return 0;
+        return 0xDBD8C7;
     }
 
     @Override
