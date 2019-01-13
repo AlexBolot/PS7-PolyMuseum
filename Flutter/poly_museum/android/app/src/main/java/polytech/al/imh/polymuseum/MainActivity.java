@@ -13,16 +13,12 @@ import io.flutter.plugins.GeneratedPluginRegistrant;
 import plugins.IPlugin;
 
 public class MainActivity extends FlutterActivity {
-
-    private static final String PLUGIN_CHANNEL = "channel:polytech.al.imh/plugin";
-    private static ThemeExtensionPoint themeExtensionPoint = new ThemeExtensionPoint();
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        GeneratedPluginRegistrant.registerWith(this);
-
-        new MethodChannel(this.getFlutterView(), PLUGIN_CHANNEL).setMethodCallHandler(new MethodChannel.MethodCallHandler() {
+private static final String PLUGIN_CHANNEL = "channel:polytech.al.imh/plugin";
+    private static ThemeExtensionPoint themeExtensionPoint = new ThemeExtensionPoint();  @Override
+  protected void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    GeneratedPluginRegistrant.registerWith(this);
+new MethodChannel(this.getFlutterView(), PLUGIN_CHANNEL).setMethodCallHandler(new MethodChannel.MethodCallHandler() {
             @Override
             public void onMethodCall(MethodCall methodCall, MethodChannel.Result result) {
                 if (methodCall.method.equals("loadPlugins")) {
@@ -52,6 +48,5 @@ public class MainActivity extends FlutterActivity {
                     //result.success(extensionPoint.getMessages());
                 }
             }
-        });
-    }
+        });  }
 }
