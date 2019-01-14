@@ -94,11 +94,14 @@ class _GuideViewState extends State<GuideView> {
               style: TextStyle(color: Colors.lightBlue.withOpacity(0.7))),
           onPressed: () async {
             game = new Game(code);
+            moveTo('/GameGuideView');
           },
         ),
       ),
     );
   }
+
+  moveTo(String pageName) => Navigator.of(context).pushNamed(pageName);
 
   void displayCode(String code) {
     showDialog(
