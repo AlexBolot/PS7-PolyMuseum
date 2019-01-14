@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:poly_museum/ObjectResearchGameService.dart';
+import 'package:poly_museum/Objects.dart';
 //import 'package:qr_scanner_generator/scan.dart';
 
 class ObjectResearchGameView extends StatefulWidget {
@@ -18,15 +19,16 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
   String userTeam = "1";
   String userName = "Paul";
 
+
   VoidCallback _refresh() {
     setState(() {});
+
   }
 
   @override
   void initState() {
     super.initState();
     ObjectResearchGameService.updateResearchGameDescriptions(_refresh,userGroup,userTeam);
-    build(context);
   }
 
   @override
@@ -38,56 +40,42 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
 
     @override
   Widget build(BuildContext context) {
-    //print(ObjectResearchGameService.objectsDiscovered);
     return Scaffold(
       appBar: AppBar(title: Text('Descriptions View')),
-      //return Card(),
       body: Container(
-        child: StreamBuilder<QuerySnapshot>(
-          stream: Firestore.instance
-              .collection("Musées")
-              .document("NiceSport")
-              .collection("Objets")
-              .snapshots(),
-          builder:
-              (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-            if (snapshot.hasError) return new Text('${snapshot.error}');
-            switch (snapshot.connectionState) {
-              case ConnectionState.waiting:
-                return new Container();
-              default:
-                return new ListView(children: getExpenseItems(snapshot));
-            }
-          },
-        ),
+        child: new ListView(children: getExpenseItems()),
       ),
     );
   }
 
-  getExpenseItems(AsyncSnapshot<QuerySnapshot> snapshot) {
-    return snapshot.data.documents.map((descr) {
+  getExpenseItems() {
+    return ObjectResearchGameService.objectsGame.map((object) {
       return GestureDetector(
         onTap: () {
-          scan(descr["description"]);
+          if (object.discoveredByTeams.contains(userGroup)) {
+            displayObjectAlreadyFound();
+          } else {
+            scan(object);
+          }
         },
         child: Card(
           margin: EdgeInsets.symmetric(horizontal: 38.0, vertical: 4.0),
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Text(
-              descr["description"],
+              object.description,
               style: TextStyle(
                 fontSize: 20.0,
               ),
             ),
           ),
-          color: chooseColor(descr["description"]),
+          color: chooseColor(object),
         ),
       );
     }).toList();
   }
 
-  Future scan(objectDescription) async {
+  Future scan(Objects object) async {
     try {
       String barcode = await BarcodeScanner.scan();
       setState(() => this.barcode = barcode);
@@ -96,75 +84,83 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
         this.barcode = 'The user did not grant the camera permission!';
       } else {
         this.barcode = 'Unknown error: $e';
-        //print(e);
       }
     } on FormatException {
       this.barcode =
           'null (User returned using the "back"-button before scanning anything. Result)';
     } catch (e) {
       this.barcode = 'Unknown error: $e';
-      //print('Unknown error: $e');
     }
-    final DocumentReference postRef = Firestore.instance
-        .collection("Musées")
-        .document("NiceSport")
-        .collection("GroupesVisite")
-        .document("groupe$userGroup")
-        .collection("JeuRechercheObjet")
-        .document("Objets");
-
     List objectFound;
     var keyObject;
-    var descriptionObject;
     var correctObjectFound = false;
 
-    Firestore.instance.runTransaction((Transaction tx) async {
-      DocumentSnapshot postSnapshot = await tx.get(postRef);
-      if (postSnapshot.exists) {
-        void iterateMapEntry(key, value) {
-          postSnapshot.data[key] = value;
-          value["descriptionRef"].get().then((objet) {
-            if (objet["barCode"] == this.barcode &&
-                objectDescription == objet["description"]) {
-              descriptionObject = value["descriptionRef"];
-              objectFound = value["trouveParEquipes"].toList();
-              objectFound.add(this.userTeam);
-              keyObject = key;
-              correctObjectFound = true;
-            }
-          });
-        }
+    if (object.qrCode == this.barcode) {
 
-        postSnapshot.data.forEach(iterateMapEntry);
-      }
-    });
+      objectFound = new List.from(object.discoveredByTeams);
+      objectFound.add(this.userTeam);
+      keyObject = object.dataBaseName;
+      correctObjectFound = true;
+
+    }
+
 
     Future.delayed(new Duration(seconds: 1), () {
       if (correctObjectFound) {
-        final DocumentReference postRef = Firestore.instance
-            .collection("Musées")
-            .document("NiceSport")
-            .collection("GroupesVisite")
-            .document("groupe$userGroup")
-            .collection("JeuRechercheObjet")
-            .document("Objets");
-        Firestore.instance.runTransaction((Transaction tx) async {
-          await tx.update(postRef, <String, dynamic>{
-            keyObject: {
-              'descriptionRef': descriptionObject,
-              'trouveParEquipes': objectFound
-            }
-          });
-        });
+        ObjectResearchGameService.teamFoundObject(userGroup,keyObject,object.descriptionReference,objectFound);
       }
+      displayResult(correctObjectFound);
     });
+
   }
 
-  chooseColor(object) {
+  chooseColor(Objects object) {
     var color = Color.fromARGB(255, 255, 255, 255);
-    if (ObjectResearchGameService.objectsDiscovered[object] != null && ObjectResearchGameService.objectsDiscovered[object].contains(userTeam)) {
+    if ( object.discoveredByTeams != null && object.discoveredByTeams.contains(userTeam)) {
       color = Color.fromARGB(255, 50, 200, 50);
     }
       return color;
+  }
+
+  void displayResult(bool result) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(textResult(result)),
+          actions: <Widget>[
+            FlatButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text('Retour'),
+            )
+          ],
+        );
+      },
+    );
+  }
+
+  void displayObjectAlreadyFound() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text("L'objet sélectionné à déjà été trouvé par un coéquipier !"),
+          actions: <Widget>[
+            FlatButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text('Retour'),
+            )
+          ],
+        );
+      },
+    );
+  }
+
+  String textResult(result){
+    if(result == true){
+      return "Bonne réponse ! Vous avez trouvé";
+    }else{
+      return "Mauvaise réponse ! Continuez de chercher";
+    }
   }
 }
