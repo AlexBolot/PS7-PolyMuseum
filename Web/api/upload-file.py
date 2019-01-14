@@ -1,10 +1,12 @@
 import json
 import firebase_admin
+from flask import Flask
+from flask import request
+from flask_api import status
+
 from firebase_admin import credentials, firestore, storage
 
 import os
-
-
 
 cred = credentials.Certificate('/home/basil/Projets/PS7/polymuseum-ps7-firebase-adminsdk-0gks3-473facb980.json');
 firebase_admin.initialize_app(cred, {
@@ -32,7 +34,6 @@ def write_data(key, value, target):
         document = not document
 
     ref.set({key : value}, merge=True);
-    
 
 def upload_recurs(tree, target):
     for key, value in tree.items():
@@ -49,7 +50,18 @@ def upload_config(filepath):
     
     upload_recurs(data['data'], target)
     
-
-upload_config('/home/basil/Projets/PS7/config-color.json')
+#
         
+app = Flask(__name__)
 
+@app.route('/upload', methods=['POST'])
+def upload():
+    f = request.files['config-file']
+    f.save('./uploads/' + f.filename)
+    upload_config('./uploads/' + f.filename)    
+
+    
+    return 'Sucess', status.HTTP_200_OK
+
+if __name__ == '__main__':
+    app.run()
