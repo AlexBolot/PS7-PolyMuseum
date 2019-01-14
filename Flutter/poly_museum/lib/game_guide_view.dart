@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:poly_museum/ObjectResearchGameService.dart';
 import 'package:poly_museum/global.dart';
 import 'package:poly_museum/model/game.dart';
 import 'package:poly_museum/services/group_service.dart';
+import 'package:poly_museum/services/object_research_game_service.dart';
 
 class GameGuideView extends StatefulWidget {
   final String title;
