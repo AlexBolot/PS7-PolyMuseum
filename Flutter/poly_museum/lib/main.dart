@@ -1,4 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:poly_museum/front_view.dart';
+import 'package:poly_museum/game_guide_view.dart';
+import 'package:poly_museum/guide_view.dart';
+import 'package:poly_museum/services/group_service.dart';
+import 'package:poly_museum/visitor_view.dart';
+import 'ColorChanger.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 void main() => runApp(MyApp());
 
@@ -20,6 +27,7 @@ class MyApp extends StatelessWidget {
           '/GuideView': (context) => GuideView(title: 'PolyMuseum Menu'),
           '/MyHomePage': (context) => MyHomePage(title: 'PolyMuseum Menu'),
           '/VisitorView': (context) => VisitorView(),
+         '/GameGuideView': (context) => GameGuideView(title: "Jeu de recherche d'objets"),
         },
       ),
     );
