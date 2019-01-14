@@ -12,7 +12,7 @@ class GroupService {
 
   List<Group> get groups => _groups;
 
-  List<int> get groupIDs => _groups.map((group) => int.tryParse(group.id.replaceAll('groupe', '')));
+  List<int> get groupIDs => _groups.map((group) => int.tryParse(group.id.replaceAll('groupe', ''))).toList();
 
   streamGroups() {
     _groupsStream = _firestore
