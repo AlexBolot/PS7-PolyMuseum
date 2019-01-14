@@ -48,8 +48,9 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
     Firestore.instance.collection('appearance').document('current').get().then((appearance) {
-      ColorChanger.of(context)?.color =
-          Color.fromARGB(0xFF, appearance['color_red'], appearance['color_green'], appearance['color_blue']);
+      // ColorChanger.of(context)?.color =
+      //     Color.fromARGB(0xFF, appearance['color_red'], appearance['color_green'], appearance['color_blue'])
+          ;
     });
   }
 
