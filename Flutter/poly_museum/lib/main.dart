@@ -1,42 +1,33 @@
 import 'package:flutter/material.dart';
-import 'package:poly_museum/ObjectResearchGameView.dart';
 
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
-        primarySwatch: Colors.blue,
+    Color defaultColor = Colors.blue;
+
+    GroupService().streamGroups();
+
+    return ColoredWidget(
+      defaultColor: defaultColor,
+      child: MaterialApp(
+        title: 'PolyMuseum',
+        theme: ThemeData(primaryColor: defaultColor),
+        home: FrontView(title: 'PolyMuseum Menu'),
+        routes: {
+          '/FrontView': (context) => FrontView(title: 'PolyMuseum Menu'),
+          '/GuideView': (context) => GuideView(title: 'PolyMuseum Menu'),
+          '/MyHomePage': (context) => MyHomePage(title: 'PolyMuseum Menu'),
+          '/VisitorView': (context) => VisitorView(),
+        },
       ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
+  MyHomePage({this.title});
 
   final String title;
 
@@ -45,70 +36,142 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+  final String nomMusee = 'Musée du Sport';
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
+  @override
+  void initState() {
+    super.initState();
+    Firestore.instance.collection('appearance').document('current').get().then((appearance) {
+      ColorChanger.of(context)?.color =
+          Color.fromARGB(0xFF, appearance['color_red'], appearance['color_green'], appearance['color_blue']);
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
-      appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              'You have pushed the button this many times:',
+      appBar: AppBar(title: Text(widget.title)),
+      body: ListView(
+        children: <Widget>[
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: Card(
+              child: Column(
+                children: <Widget>[
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      ListTile(
+                        leading: Icon(Icons.account_balance),
+                        title: Text('Bienvenue au $nomMusee'),
+                      ),
+                      Image(image: NetworkImage("http://www.museedusport.fr/sites/default/files/logo.png"))
+                    ],
+                  ),
+                ],
+              ),
             ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.display1,
+          ),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                children: <Widget>[
+                  Expanded(
+                    child: Image(
+                      image: NetworkImage(
+                          'http://www.cigalefm.net/wp-content/uploads/2014/10/ballon-de-foot-traditionnel.jpg'),
+                    ),
+                  ),
+                  Expanded(
+                    child: Image(
+                      image: NetworkImage(
+                          "https://upload.wikimedia.org/wikipedia/fr/thumb/2/2f/Nice_Logo.svg/285px-Nice_Logo.svg.png"),
+                    ),
+                  ),
+                  Expanded(
+                    child: Image(
+                        image: NetworkImage(
+                            "https://www.basketstore.fr/media/catalog/product/cache/1/image/9df78eab33525d08d6e5fb8d27136e95/b/a/ballon-nike-hyperelite-oranget6.jpg")),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: Card(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: <Widget>[
+                    Text(
+                      'Rejoindre une visite : ',
+                      style: TextStyle(fontSize: 18.0),
+                    ),
+                    FlatButton(
+                      child: Text('Rejoindre', style: TextStyle(color: Colors.lightBlue.withOpacity(0.7))),
+                      onPressed: () => enterCode(),
+                    )
+                  ],
+                ),
+              ),
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  Future enterCode() async {
+    TextEditingController nameController = new TextEditingController();
+    TextEditingController codeController = new TextEditingController();
+
+    await showDialog<String>(
+      context: context,
+      builder: (BuildContext context) {
+        return SimpleDialog(
+          title: const Text('Enter group code'),
+          children: <Widget>[
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Column(
+                children: <Widget>[
+                  TextFormField(
+                    controller: nameController,
+                    textCapitalization: TextCapitalization.words,
+                    style: TextStyle(fontSize: 20.0, color: Colors.black),
+                    decoration: InputDecoration(hintText: 'Nom au sein du groupe'),
+                  ),
+                  TextFormField(
+                    controller: codeController,
+                    textCapitalization: TextCapitalization.characters,
+                    style: TextStyle(fontSize: 20.0, color: Colors.black),
+                    decoration: InputDecoration(hintText: 'Code de groupe'),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: RaisedButton(
+                      color: Theme.of(context).primaryColor,
+                      textColor: Colors.grey[300],
+                      onPressed: () => Navigator.pop(context),
+                      child: Text('Valider'),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
-        ),
-      ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => ObjectResearchGameView()));
-          },
-          tooltip: 'Increment',
-          child: Icon(Icons.games),
-        ) // This trailing comma makes auto-formatting nicer for build methods.
+        );
+      },
     );
+
+    String name = nameController.text.trim();
+    String code = codeController.text.trim();
+
+    GroupService().addMemberToGroup(name, code);
+
+    Navigator.of(context).pushNamed('/VisitorView');
   }
 }
