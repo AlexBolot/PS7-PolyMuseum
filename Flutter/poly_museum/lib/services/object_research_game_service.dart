@@ -2,13 +2,33 @@ import 'dart:async';
 import 'dart:ui';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:poly_museum/Objects.dart';
+import 'package:poly_museum/model/objects.dart';
 
 class ObjectResearchGameService {
   static StreamSubscription<QuerySnapshot> objectsDiscoveredStream;
+  static StreamSubscription<DocumentSnapshot> gameStatusStream;
+
+
   static final Firestore _firestore = Firestore.instance;
 
   static List<Objects> objectsGame = List();
+  static bool gameStatusBegin;
+  static bool gameStatusEnd;
+
+  static updateGameStatus(VoidCallback callback, userGroup) {
+    gameStatusStream = _firestore
+        .collection("Musées")
+        .document("NiceSport")
+        .collection("GroupesVisite")
+        .document("groupe$userGroup")
+        .snapshots()
+        .listen((groupData) {
+        gameStatusBegin = groupData.data["isStarted"];
+        gameStatusEnd = groupData.data["isFinished"];
+
+        callback();
+    });
+  }
 
   static updateResearchGameDescriptions(
       VoidCallback callback, userGroup, userTeam) {
@@ -25,7 +45,6 @@ class ObjectResearchGameService {
         if (doc.data.keys.contains("objet1")) {
           Future iterateMapEntry(key, value) async {
             doc.data[key] = value;
-
             DocumentSnapshot ref = await value["descriptionRef"].get();
             List teamFoundObject = value['trouveParEquipes'];
             objectsGame.add(new Objects(
@@ -67,4 +86,5 @@ class ObjectResearchGameService {
 
 
   static disposeObjectsDiscoveredStream() => objectsDiscoveredStream?.cancel();
+  static disposeGameStatusStream() => gameStatusStream?.cancel();
 }
