@@ -15,10 +15,10 @@ class _FrontViewState extends State<FrontView> {
   @override
   void initState() {
     super.initState();
-    Firestore.instance.collection('appearance').document('current').get().then((appearance) {
+   /* Firestore.instance.collection('appearance').document('current').get().then((appearance) {
       ColorChanger.of(context)?.color =
           Color.fromARGB(0xFF, appearance['color_red'], appearance['color_green'], appearance['color_blue']);
-    });
+    }); */
   }
 
   @override

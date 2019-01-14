@@ -9,6 +9,7 @@ class ObjectResearchGameService {
   static final Firestore _firestore = Firestore.instance;
 
   static List<Objects> objectsGame = List();
+  static List<String> teamsGame = List();
 
   static updateResearchGameDescriptions(
       VoidCallback callback, userGroup, userTeam) {
@@ -21,7 +22,7 @@ class ObjectResearchGameService {
         .snapshots()
         .listen((data) async {
       objectsGame = List();
-      for(DocumentSnapshot doc in data.documents){
+      for (DocumentSnapshot doc in data.documents) {
         if (doc.data.keys.contains("objet1")) {
           Future iterateMapEntry(key, value) async {
             doc.data[key] = value;
@@ -35,7 +36,8 @@ class ObjectResearchGameService {
                 teamFoundObject,
                 key));
           }
-          for(String s in doc.data.keys){
+
+          for (String s in doc.data.keys) {
             await iterateMapEntry(s, doc.data[s]);
           }
         }
@@ -65,6 +67,29 @@ class ObjectResearchGameService {
     });
   }
 
+  static getTeams(VoidCallback callback, userGroup) {
+    List t = new List<String>();
+    StreamSubscription<DocumentSnapshot> teams;
+    teams = _firestore
+        .collection("Musées")
+        .document("NiceSport")
+        .collection("GroupesVisite")
+        .document("groupe$userGroup")
+        .collection("JeuRechercheObjet")
+        .document("Equipes")
+        .snapshots()
+        .listen((snap) async {
+          teamsGame = List();
+      for (String s in snap.data.keys) {
+        for (DocumentReference d in snap.data[s]["membres"]) {
+          String prenom = ((await d.get())["prenom"]);
+          teamsGame.add("$s:$prenom");
+        }
+      }
+      callback();
+    });
+    return teamsGame;
+  }
 
   static disposeObjectsDiscoveredStream() => objectsDiscoveredStream?.cancel();
 }

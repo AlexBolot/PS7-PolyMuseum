@@ -1,1 +1,1 @@
-String currentGroupID;
+String currentGroupID = "1";

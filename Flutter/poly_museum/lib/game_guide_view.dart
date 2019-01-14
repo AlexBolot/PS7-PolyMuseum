@@ -1,6 +1,6 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:poly_museum/ColorChanger.dart';
+import 'package:poly_museum/ObjectResearchGameService.dart';
+import 'package:poly_museum/global.dart';
 import 'package:poly_museum/model/game.dart';
 import 'package:poly_museum/services/group_service.dart';
 
@@ -16,12 +16,14 @@ class GameGuideView extends StatefulWidget {
 class _GameGuideViewState extends State<GameGuideView> {
   GroupService groupService = GroupService();
   Game game;
-  String code = '';
+  String code = currentGroupID;
+  List<String> listNames;
 
   @override
   void initState() {
     super.initState();
-    Firestore.instance
+    listNames = ObjectResearchGameService.getTeams(refresh, currentGroupID);
+    /* Firestore.instance
         .collection('appearance')
         .document('current')
         .get()
@@ -31,7 +33,7 @@ class _GameGuideViewState extends State<GameGuideView> {
           appearance['color_red'],
           appearance['color_green'],
           appearance['color_blue']);
-    });
+    });*/
   }
 
   @override
@@ -41,16 +43,13 @@ class _GameGuideViewState extends State<GameGuideView> {
         title: Text(widget.title),
       ),
       body: Container(
-        child: Column(
-          mainAxisSize: MainAxisSize.max,
-          children: <Widget>[],
-        ),
+        child: Column(mainAxisSize: MainAxisSize.max, children: createColumn()),
       ),
     );
   }
 
   List<Widget> createColumn() {
-    List list = new List();
+    List list = new List<Widget>();
     list.add(Card(
       margin: EdgeInsets.all(16.0),
       elevation: 8.0,
@@ -66,6 +65,28 @@ class _GameGuideViewState extends State<GameGuideView> {
         ),
       ),
     ));
+    Map<int, String> map = new Map();
+    for (String s in listNames) {
+      List t = s.split(":");
+      map.update(
+          int.parse(t[0]), (String) => map[int.parse(t[0])] + ", " + t[1],
+          ifAbsent: () => t[1]);
+    }
+    for (int i in map.keys) {
+      list.add(Card(
+        margin: EdgeInsets.all(16.0),
+        elevation: 8.0,
+        child: Container(
+          padding: EdgeInsets.all(8.0),
+          width: double.infinity,
+          child: ListTile(
+            title: Text('Equipe ' + i.toString(),
+                style: TextStyle(color: Colors.lightBlue.withOpacity(0.7))),
+            subtitle: Text(map[i]),
+          ),
+        ),
+      ));
+    }
     return list;
   }
 
@@ -87,5 +108,9 @@ class _GameGuideViewState extends State<GameGuideView> {
         );
       },
     );
+  }
+
+  VoidCallback refresh() {
+    setState(() {});
   }
 }

@@ -22,7 +22,7 @@ class _GuideViewState extends State<GuideView> {
   @override
   void initState() {
     super.initState();
-    Firestore.instance
+    /*Firestore.instance
         .collection('appearance')
         .document('current')
         .get()
@@ -32,7 +32,7 @@ class _GuideViewState extends State<GuideView> {
           appearance['color_red'],
           appearance['color_green'],
           appearance['color_blue']);
-    });
+    });*/
   }
 
   @override
