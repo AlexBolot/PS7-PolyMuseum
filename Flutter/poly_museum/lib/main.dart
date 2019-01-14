@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:poly_museum/object_research_game_view.dart';
 import 'package:poly_museum/front_view.dart';
 import 'package:poly_museum/game_guide_view.dart';
 import 'package:poly_museum/guide_view.dart';
@@ -26,8 +27,9 @@ class MyApp extends StatelessWidget {
           '/FrontView': (context) => FrontView(title: 'PolyMuseum Menu'),
           '/GuideView': (context) => GuideView(title: 'PolyMuseum Menu'),
           '/MyHomePage': (context) => MyHomePage(title: 'PolyMuseum Menu'),
-          '/VisitorView': (context) => VisitorView(),
+          '/VisitorView': (context) => ObjectResearchGameView(),
          '/GameGuideView': (context) => GameGuideView(title: "Jeu de recherche d'objets"),
+
         },
       ),
     );
