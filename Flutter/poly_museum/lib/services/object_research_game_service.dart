@@ -8,7 +8,6 @@ class ObjectResearchGameService {
   static StreamSubscription<QuerySnapshot> objectsDiscoveredStream;
   static StreamSubscription<DocumentSnapshot> gameStatusStream;
 
-
   static final Firestore _firestore = Firestore.instance;
 
   static List<Objects> objectsGame = List();
@@ -23,12 +22,39 @@ class ObjectResearchGameService {
         .document("groupe$userGroup")
         .snapshots()
         .listen((groupData) {
-        gameStatusBegin = groupData.data["isStarted"];
-        gameStatusEnd = groupData.data["isFinished"];
+      gameStatusBegin = groupData.data["isStarted"];
+      gameStatusEnd = groupData.data["isFinished"];
 
-        callback();
+      callback();
     });
   }
+
+  static startGame(VoidCallback callback, userGroup) {
+    Future.delayed(new Duration(seconds: 1), () {
+      final DocumentReference postRef = Firestore.instance
+          .collection("Musées")
+          .document("NiceSport")
+          .collection("GroupesVisite")
+          .document("groupe$userGroup");
+      Map<String, dynamic> m = new Map();
+      m.update('isStarted', (bool) => true, ifAbsent: () => true);
+      postRef.updateData(m);
+    });
+  }
+
+  static endGame(VoidCallback callback, userGroup) {
+    Future.delayed(new Duration(seconds: 1), () {
+      final DocumentReference postRef = Firestore.instance
+          .collection("Musées")
+          .document("NiceSport")
+          .collection("GroupesVisite")
+          .document("groupe$userGroup");
+      Map<String, dynamic> m = new Map();
+      m.update('isFinished', (bool) => true, ifAbsent: () => true);
+      postRef.updateData(m);
+    });
+  }
+
   static List<String> teamsGame = List();
 
   static updateResearchGameDescriptions(
@@ -98,7 +124,7 @@ class ObjectResearchGameService {
         .document("Equipes")
         .snapshots()
         .listen((snap) async {
-          teamsGame = List();
+      teamsGame = List();
       for (String s in snap.data.keys) {
         for (DocumentReference d in snap.data[s]["membres"]) {
           String prenom = ((await d.get())["prenom"]);
@@ -111,5 +137,6 @@ class ObjectResearchGameService {
   }
 
   static disposeObjectsDiscoveredStream() => objectsDiscoveredStream?.cancel();
+
   static disposeGameStatusStream() => gameStatusStream?.cancel();
 }

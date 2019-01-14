@@ -60,6 +60,7 @@ class _GameGuideViewState extends State<GameGuideView> {
           child: Text('Arrêter le jeu',
               style: TextStyle(color: Colors.lightBlue.withOpacity(0.7))),
           onPressed: () async {
+            ObjectResearchGameService.endGame(refresh, currentGroupID);
             displayMessage("Fin du jeu.");
           },
         ),
