@@ -51,10 +51,11 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    Firestore.instance.collection('appearance').document('current').get().then((appearance) {
-      ColorChanger.of(context)?.color =
-          Color.fromARGB(0xFF, appearance['color_red'], appearance['color_green'], appearance['color_blue']);
-    });
+    // Firestore.instance.collection('appearance').document('current').get().then((appearance) {
+    //   // ColorChanger.of(context)?.color =
+    //   //     Color.fromARGB(0xFF, appearance['color_red'], appearance['color_green'], appearance['color_blue'])
+    //       ;
+    // });
   }
 
   @override
