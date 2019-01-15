@@ -71,7 +71,7 @@ class _GuideViewState extends State<GuideView> {
                 ),
               ),
             ),
-            displayLaunchGame()
+            displayLaunchGame(),
           ],
         ),
       ),

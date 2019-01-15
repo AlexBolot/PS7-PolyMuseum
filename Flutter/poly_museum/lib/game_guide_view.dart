@@ -17,23 +17,23 @@ class _GameGuideViewState extends State<GameGuideView> {
   GroupService groupService = GroupService();
   Game game;
   String code = currentGroupID;
-  List<String> listNames;
 
   @override
   void initState() {
     super.initState();
-    listNames = ObjectResearchGameService.getTeams(refresh, currentGroupID);
-    /* Firestore.instance
-        .collection('appearance')
-        .document('current')
-        .get()
-        .then((appearance) {
-      ColorChanger.of(context)?.color = Color.fromARGB(
-          0xFF,
-          appearance['color_red'],
-          appearance['color_green'],
-          appearance['color_blue']);
-    });*/
+    ObjectResearchGameService.getTeams(_refresh, currentGroupID);
+    ObjectResearchGameService.updateResearchGameDescriptions(
+        _refresh, globalUserGroup, globalUserTeam);
+  }
+
+  VoidCallback _refresh() {
+    setState(() {});
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    ObjectResearchGameService.disposeObjectsDiscoveredStream();
   }
 
   @override
@@ -60,14 +60,14 @@ class _GameGuideViewState extends State<GameGuideView> {
           child: Text('Arrêter le jeu',
               style: TextStyle(color: Colors.lightBlue.withOpacity(0.7))),
           onPressed: () async {
-            ObjectResearchGameService.endGame(refresh, currentGroupID);
+            ObjectResearchGameService.endGame(_refresh, currentGroupID);
             displayMessage("Fin du jeu.");
           },
         ),
       ),
     ));
     Map<int, String> map = new Map();
-    for (String s in listNames) {
+    for (String s in ObjectResearchGameService.teamsGame) {
       List t = s.split(":");
       map.update(
           int.parse(t[0]), (String) => map[int.parse(t[0])] + ", " + t[1],
@@ -88,9 +88,29 @@ class _GameGuideViewState extends State<GameGuideView> {
         ),
       ));
     }
+    list.add(displayEndGame());
     return list;
   }
 
+  Widget displayEndGame(){
+    if(ObjectResearchGameService.winningTeam != -1){
+      String winningTeam = ObjectResearchGameService.winningTeam.toString();
+      return Card(
+        margin: EdgeInsets.all(16.0),
+        elevation: 8.0,
+        child: Container(
+          padding: EdgeInsets.all(8.0),
+          width: double.infinity,
+          child: FlatButton(
+            child: Text("L'équipe $winningTeam a gagné !",
+                style: TextStyle(color: Colors.lightBlue.withOpacity(0.7))),
+          ),
+        ),
+      );
+    }else{
+      return Container();
+    }
+  }
   //Pour les objets : les récupérer tous, avec leur param trouvé par, et si une des équipes est dans tous les trouvé par on le signale au guide
 
   void displayMessage(String message) {
@@ -113,7 +133,4 @@ class _GameGuideViewState extends State<GameGuideView> {
     );
   }
 
-  VoidCallback refresh() {
-    setState(() {});
-  }
 }

@@ -13,7 +13,9 @@ class ObjectResearchGameService {
   static List<Objects> objectsGame = List();
   static bool gameStatusBegin;
   static bool gameStatusEnd;
+  static int numberTeams;
   static Map<Object, List<int>> objectsteams = new Map();
+  static int winningTeam = -1;
 
   static updateGameStatus(VoidCallback callback, userGroup) {
     gameStatusStream = _firestore
@@ -37,6 +39,7 @@ class ObjectResearchGameService {
           .collection("GroupesVisite")
           .document("groupe$userGroup");
       Map<String, dynamic> m = new Map();
+      m.update('isFinished', (bool) => false, ifAbsent: () => false);
       m.update('isStarted', (bool) => true, ifAbsent: () => true);
       postRef.updateData(m);
     });
@@ -50,6 +53,7 @@ class ObjectResearchGameService {
           .collection("GroupesVisite")
           .document("groupe$userGroup");
       Map<String, dynamic> m = new Map();
+      m.update('isStarted', (bool) => false, ifAbsent: () => false);
       m.update('isFinished', (bool) => true, ifAbsent: () => true);
       postRef.updateData(m);
     });
@@ -87,8 +91,13 @@ class ObjectResearchGameService {
           }
         }
       }
+      if(numberTeams!=null){
+        winningTeam = checkEndGame();
+      }
       callback();
     });
+    getTeamNumber(userGroup);
+
   }
 
   static teamFoundObject(
@@ -109,15 +118,11 @@ class ObjectResearchGameService {
           }
         });
       });
-      //TODO getEndGame renvoie -1 si aucune équipe n'a fini et le numéro de l'équipe sinon <3
-      //TODO Bon courage Dodo l'escargot
-      int i = getEndGame(userGroup);
-      print(i);
+
     });
   }
 
-  static getEndGame(userGroup) {
-    int nbEquipes;
+  static getTeamNumber(userGroup) {
     StreamSubscription<DocumentSnapshot> teams;
     teams = _firestore
         .collection("Musées")
@@ -127,22 +132,25 @@ class ObjectResearchGameService {
         .collection("JeuRechercheObjet")
         .document("Equipes")
         .snapshots()
-        .listen((snap) async {
-      nbEquipes = snap.data.length;
+        .listen((snap)  {
+      numberTeams = snap.data.length;
+    });
+  }
+
+  static checkEndGame(){
+    int nbObjects = objectsGame.length;
+    for (int i = 0; i < numberTeams; i++) {
+      int nbObjetsParEquipe = 0;
       for (Objects o in objectsGame) {
-        int nbObjets = objectsGame.length;
-        for (int i = 0; i < nbEquipes; i++) {
-          int nbObjetsParEquipe = 0;
-          if (o.discoveredByTeams.contains(i)) {
-            nbObjetsParEquipe++;
-          }
-          if (nbObjets == nbObjetsParEquipe) {
-            return i;
-          }
+        if (o.discoveredByTeams.contains(i.toString())) {
+          nbObjetsParEquipe++;
+        }
+        if (nbObjects == nbObjetsParEquipe) {
+          return i;
         }
       }
-      return -1;
-    });
+    }
+    return -1;
   }
 
   static getTeams(VoidCallback callback, userGroup) {

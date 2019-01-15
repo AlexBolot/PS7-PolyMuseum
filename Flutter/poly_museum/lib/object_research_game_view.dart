@@ -2,6 +2,7 @@ import 'package:barcode_scan/barcode_scan.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'package:poly_museum/global.dart';
 import 'package:poly_museum/model/objects.dart';
 import 'package:poly_museum/services/object_research_game_service.dart';
 
@@ -11,10 +12,10 @@ class ObjectResearchGameView extends StatefulWidget {
 }
 
 class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
-  String barcode = "";
-  String userGroup = "1";
-  String userTeam = "1";
-  String userName = "Paul";
+  String barcode = globalBarcode;
+  String userGroup = globalUserGroup;
+  String userTeam = globalUserTeam;
+  String userName = globalUserName;
 
   VoidCallback _refresh() {
     setState(() {});
