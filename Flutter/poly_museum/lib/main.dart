@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:poly_museum/object_research_game_view.dart';
 import 'package:poly_museum/front_view.dart';
+import 'package:poly_museum/game_guide_view.dart';
 import 'package:poly_museum/guide_view.dart';
 import 'package:poly_museum/services/group_service.dart';
 import 'package:poly_museum/services/plugin_service.dart';
-import 'package:poly_museum/visitor_view.dart';
 import 'ColorChanger.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -16,21 +17,20 @@ class MyApp extends StatelessWidget {
     Color defaultColor = Colors.blue;
 
     GroupService().streamGroups();
+
     PluginService().streamPluginsData(() => PluginService.initPlugins());
 
-    return ColoredWidget(
-      defaultColor: defaultColor,
-      child: MaterialApp(
+    return  MaterialApp(
         title: 'PolyMuseum',
         theme: ThemeData(primaryColor: defaultColor),
-        home: FrontView(title: 'PolyMuseum Menu'),
+        home: ColoredWidget(child :FrontView(title: 'PolyMuseum Menu'),defaultColor : defaultColor),
         routes: {
-          '/FrontView': (context) => FrontView(title: 'PolyMuseum Menu'),
-          '/GuideView': (context) => GuideView(title: 'PolyMuseum Menu'),
-          '/MyHomePage': (context) => MyHomePage(title: 'PolyMuseum Menu'),
-          '/VisitorView': (context) => VisitorView(),
-        },
-      ),
+          '/FrontView': (context) => ColoredWidget(child :FrontView(title: 'PolyMuseum Menu'),defaultColor : defaultColor),
+          '/GuideView': (context) => ColoredWidget(child :GuideView(title: 'PolyMuseum Menu'),defaultColor : defaultColor),
+          '/MyHomePage': (context) => ColoredWidget(child :MyHomePage(title: 'PolyMuseum Menu'),defaultColor : defaultColor),
+          '/VisitorView': (context) => ColoredWidget(child : ObjectResearchGameView(),  defaultColor : defaultColor),
+        '/GameGuideView': (context) => ColoredWidget(child : GameGuideView(title: "Jeu de recherche d'objets"),  defaultColor : defaultColor),
+      },
     );
   }
 }
@@ -50,9 +50,9 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    Firestore.instance.collection('appearance').document('current').get().then((appearance) {
-      ColorChanger.of(context)?.color =
-          Color.fromARGB(0xFF, appearance['color_red'], appearance['color_green'], appearance['color_blue']);
+    Firestore.instance.collection('/Musées/NiceSport/plugins/ChangerCouleurs/config').document('current').get().then((colors) {
+        ColorChanger.of(context)?.color =
+          Color.fromARGB(0xFF, colors['color_red'], colors['color_green'], colors['color_blue']);
     });
   }
 

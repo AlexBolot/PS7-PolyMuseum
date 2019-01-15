@@ -1,0 +1,13 @@
+{
+    "target" : "/Musées/NiceSport/plugins/ChangerCouleurs/config/current",
+    "data" : {
+	"color_red" : 123,
+	"color_green" : 321,
+	"color_blue" : 123,
+	"extra" : {
+	    "foo" : {
+		"bar" : true
+	    }
+	}
+    }
+}

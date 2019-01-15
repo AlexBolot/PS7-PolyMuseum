@@ -40,6 +40,7 @@
           <h2 class="center light-blue-text"><i class="material-icons">dashboard</i></h2>
           <h5 class="center">Plugins</h5>
           <ul id ="plugins-list" class="light">
+
           </ul>
         </div>
       </div>

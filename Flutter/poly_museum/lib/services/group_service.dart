@@ -35,6 +35,7 @@ class GroupService {
     _firestore.collection("Musées").document("NiceSport").collection("GroupesVisite").document('$id').setData({
       'groupeCode': code,
       'isFinished': false,
+      'isStarted' : false,
     });
   }
 

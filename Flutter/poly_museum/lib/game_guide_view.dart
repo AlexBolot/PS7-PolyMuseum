@@ -3,18 +3,17 @@ import 'package:flutter/material.dart';
 import 'package:poly_museum/ColorChanger.dart';
 import 'package:poly_museum/model/game.dart';
 import 'package:poly_museum/services/group_service.dart';
-import 'package:uuid/uuid.dart';
 
-class GuideView extends StatefulWidget {
+class GameGuideView extends StatefulWidget {
   final String title;
 
-  GuideView({Key key, this.title}) : super(key: key);
+  GameGuideView({Key key, this.title}) : super(key: key);
 
   @override
-  _GuideViewState createState() => _GuideViewState();
+  _GameGuideViewState createState() => _GameGuideViewState();
 }
 
-class _GuideViewState extends State<GuideView> {
+class _GameGuideViewState extends State<GameGuideView> {
   GroupService groupService = GroupService();
   Game game;
   String code = '';
@@ -43,72 +42,39 @@ class _GuideViewState extends State<GuideView> {
       ),
       body: Container(
         child: Column(
-          children: <Widget>[
-            Card(
-              margin: EdgeInsets.all(16.0),
-              elevation: 8.0,
-              child: Container(
-                padding: EdgeInsets.all(8.0),
-                width: double.infinity,
-                child: FlatButton(
-                  child: Text('Créer groupe',
-                      style:
-                          TextStyle(color: Colors.lightBlue.withOpacity(0.7))),
-                  onPressed: () async {
-                    groupService.streamGroups();
-
-                    List<int> list = groupService.groupIDs..sort();
-                    code = _randomCode();
-
-                    groupService.createGroup(list[list.length - 1] + 1, code);
-                    groupService.dispose();
-
-                    displayCode(code);
-                  },
-                ),
-              ),
-            ),
-            displayLaunchGame()
-          ],
+          mainAxisSize: MainAxisSize.max,
+          children: <Widget>[],
         ),
       ),
     );
   }
 
-  String _randomCode() {
-    return Uuid().v1().toString().substring(0, 5).toUpperCase();
-  }
-
-  Widget displayLaunchGame() {
-    if (code.isEmpty) {
-      return Container();
-    }
-    return Card(
+  List<Widget> createColumn() {
+    List list = new List();
+    list.add(Card(
       margin: EdgeInsets.all(16.0),
       elevation: 8.0,
       child: Container(
         padding: EdgeInsets.all(8.0),
         width: double.infinity,
         child: FlatButton(
-          child: Text('Lancer un jeu avec le dernier groupe crée',
+          child: Text('Arrêter le jeu',
               style: TextStyle(color: Colors.lightBlue.withOpacity(0.7))),
           onPressed: () async {
-            game = new Game(code);
-            moveTo('/GameGuideView');
+            displayMessage("Fin du jeu.");
           },
         ),
       ),
-    );
+    ));
+    return list;
   }
 
-  moveTo(String pageName) => Navigator.of(context).pushNamed(pageName);
-
-  void displayCode(String code) {
+  void displayMessage(String message) {
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text('Code du groupe : $code'),
+          title: Text(message),
           actions: <Widget>[
             FlatButton(
               onPressed: () {
