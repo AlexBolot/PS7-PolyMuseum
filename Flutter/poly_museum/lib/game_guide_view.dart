@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:poly_museum/ColorChanger.dart';
-import 'package:poly_museum/model/game.dart';
 import 'package:poly_museum/services/group_service.dart';
 
 class GameGuideView extends StatefulWidget {
@@ -15,7 +14,6 @@ class GameGuideView extends StatefulWidget {
 
 class _GameGuideViewState extends State<GameGuideView> {
   GroupService groupService = GroupService();
-  Game game;
   String code = '';
 
   @override

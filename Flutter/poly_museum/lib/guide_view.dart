@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:poly_museum/ColorChanger.dart';
-import 'package:poly_museum/model/game.dart';
 import 'package:poly_museum/services/group_service.dart';
 import 'package:uuid/uuid.dart';
 
@@ -16,7 +15,6 @@ class GuideView extends StatefulWidget {
 
 class _GuideViewState extends State<GuideView> {
   GroupService groupService = GroupService();
-  Game game;
   String code = '';
 
   @override
@@ -93,7 +91,6 @@ class _GuideViewState extends State<GuideView> {
           child: Text('Lancer un jeu avec le dernier groupe crée',
               style: TextStyle(color: Colors.lightBlue.withOpacity(0.7))),
           onPressed: () async {
-            game = new Game(code);
             moveTo('/GameGuideView');
           },
         ),
