@@ -17,6 +17,7 @@
     <script type="text/javascript" src="js/config.js"></script>
     <script type="text/javascript" src="js/materialize.min.js"></script>
     <script type="text/javascript" src="js/plugins-controller.js"></script>
+    <script type="text/javascript" src="js/import-plugin-controller.js"></script>
 </head>
 <body>
 <nav class="light-blue lighten-1" role="navigation">
@@ -48,7 +49,32 @@
 </div>
 <br><br>
 </div>
-
+<div id="import-plugin-div">
+  <form enctype="multipart/form-data" method="post", action="">
+    <fieldset>
+      <label for="libelle">Libelle</label>
+      <input type="text" name="plugin-libelle" />
+      <label for="plugin-qualified-name">Nom qualifié</label>
+      <input type="text" name="plugin-qualified-name" />
+      <label for="plugin-type">Type</label>
+      <select name="plugin-type" style="display : block;">
+	<option value="THEME_PLUGIN">Theme</option>
+	<option value="FOO_PLUGIN">Foo</option>
+	<option value="BAR_PLUGIN">Bar</option>
+      </select>
+      <label for="plugin-require-config">Nécessite un fichier de configuration</label>
+      <input type="radio" name="plugin-require-config" value="Oui" /> Oui
+      <input type="radio" name="plugin-require-config" value="Non" checked /> Non
+    </fieldset>
+    <fieldset>
+      <label for="config-file">Import a plugin</label>
+      <input type="file" name="config-file" class="load-config-file" />
+    </fieldset>
+    <fieldset>
+      <button type="button">Envoyer</button>
+    </fieldset>
+  </form>
+</div>
 <footer class="page-footer blue">
     <div class="container">
         <div class="row">

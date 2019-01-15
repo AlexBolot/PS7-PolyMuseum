@@ -1,4 +1,3 @@
-
 function PluginsController(block) {
     this.block = block;
     this.database = firebase.firestore();
@@ -20,16 +19,15 @@ PluginsController.prototype.fetchData = function() {
 		var data = document.data()
 		var plugin =  {
 		    "id" : document.id,
-		    "name" : data.name,
+		    "name" : data.libelle,
 		    "requires_config" : data.config,
-		    "activated" : false
+		    "activated" : ('activated' in data)? data.activated : false
 		};
 
 		self.plugins[document.id] = plugin;
 		
 		self.createListElement(plugin);
 	    });
-
 	    
 	    self.database
 		.collection("Musées/NiceSport/plugins")
