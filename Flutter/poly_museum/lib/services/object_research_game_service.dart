@@ -109,6 +109,8 @@ class ObjectResearchGameService {
           }
         });
       });
+      //TODO getEndGame renvoie -1 si aucune équipe n'a fini et le numéro de l'équipe sinon <3
+      //TODO Bon courage Dodo l'escargot
       int i = getEndGame(userGroup);
       print(i);
     });
