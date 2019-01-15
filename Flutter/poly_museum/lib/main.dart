@@ -2,19 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:poly_museum/front_view.dart';
 import 'package:poly_museum/guide_view.dart';
 import 'package:poly_museum/services/group_service.dart';
+import 'package:poly_museum/services/plugin_service.dart';
 import 'package:poly_museum/visitor_view.dart';
 import 'ColorChanger.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:poly_museum/simple_plugin_view.dart';
 
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
+
   @override
   Widget build(BuildContext context) {
     Color defaultColor = Colors.blue;
 
     GroupService().streamGroups();
+    PluginService().streamPluginsData(() => PluginService.initPlugins());
 
     return ColoredWidget(
       defaultColor: defaultColor,

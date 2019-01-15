@@ -1,26 +1,30 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Plugin {
-  String packageName;
+  String qualifiedName;
   String downloadUrl;
   String type;
+  String pluginName;
+  String fullLocalPath;
 
-  Plugin(this.packageName, this.downloadUrl, this.type);
+  Plugin(this.qualifiedName, this.downloadUrl, this.type, this.pluginName);
 
   Plugin.fromSnapshot(DocumentSnapshot snap) {
-    this.packageName = snap.data['packageName'];
-    this.downloadUrl = snap.data['downloadUrl'];
+    this.qualifiedName = snap.data['qualifiedName'];
+    this.downloadUrl = snap.data['downloadURL'];
+    this.pluginName = snap.data['pluginName'];
     this.type = snap.data['type'];
   }
 
   Map<String, dynamic> toMap() {
     return {
-      'packageName': packageName,
+      'packageName': qualifiedName,
       'downloadUrl': downloadUrl,
+      'pluginName': pluginName,
       'type': type,
     };
   }
 
   @override
-  String toString() => '$packageName -- $type -- $downloadUrl';
+  String toString() => '$qualifiedName -- $type -- $downloadUrl';
 }

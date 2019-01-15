@@ -36,6 +36,11 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
+
+    dependencies{
+        implementation 'com.github.AlexBolot:PS7-SDK:alpha-0.1'
+    }
+
     defaultConfig {
         applicationId "polytech.al.imh.polymuseum"
         minSdkVersion 24
