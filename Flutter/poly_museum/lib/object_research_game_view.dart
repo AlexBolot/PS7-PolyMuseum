@@ -59,7 +59,7 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
         return ObjectResearchGameService.objectsGame.map((object) {
           return GestureDetector(
             onTap: () {
-              if (object.discoveredByTeams.contains(userGroup)) {
+              if (object.discoveredByTeams.contains(userTeam)) {
                 displayObjectAlreadyFound();
               } else {
                 scan(object);
