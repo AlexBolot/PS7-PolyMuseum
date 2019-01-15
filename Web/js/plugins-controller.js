@@ -73,11 +73,6 @@ PluginsController.prototype.createListElement = function(plugin) {
 	    .attr('enctype', 'multipart/form-data')
 	    .attr('method', 'post')
 	    .attr('action', '');
-	    // .submit(function(event) {
-	    // 	event.preventDefault();
-	    // 	console.log('foo');
-	    // 	self.uploadConfig(new FormData($(this)[0]));
-	    // });
 
 	var label = $('<label>')
 	    .attr('for', 'config-file')

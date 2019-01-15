@@ -10,28 +10,25 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 void main() => runApp(MyApp());
 
+
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Color defaultColor = Colors.blue;
-
+    
     GroupService().streamGroups();
-
-    return ColoredWidget(
-      defaultColor: defaultColor,
-      child: MaterialApp(
-        title: 'PolyMuseum',
-        theme: ThemeData(primaryColor: defaultColor),
-        home: FrontView(title: 'PolyMuseum Menu'),
-        routes: {
-          '/FrontView': (context) => FrontView(title: 'PolyMuseum Menu'),
-          '/GuideView': (context) => GuideView(title: 'PolyMuseum Menu'),
-          '/MyHomePage': (context) => MyHomePage(title: 'PolyMuseum Menu'),
-          '/VisitorView': (context) => ObjectResearchGameView(),
-         '/GameGuideView': (context) => GameGuideView(title: "Jeu de recherche d'objets"),
-
-        },
-      ),
+    
+    return MaterialApp(
+      title: 'PolyMuseum',
+      theme: ThemeData(primaryColor: defaultColor),
+      home: ColoredWidget(child : FrontView(title: 'PolyMuseum Menu'), defaultColor : defaultColor),
+      routes: {
+        '/FrontView': (context) => ColoredWidget(child : FrontView(title: 'PolyMuseum Menu'), defaultColor : defaultColor),
+        '/GuideView': (context) => ColoredWidget(child : GuideView(title: 'PolyMuseum Menu'), defaultColor : defaultColor),
+        '/MyHomePage': (context) => ColoredWidget(child : MyHomePage(title: 'PolyMuseum Menu'), defaultColor : defaultColor),
+        '/VisitorView': (context) => ColoredWidget(child : ObjectResearchGameView(),  defaultColor : defaultColor),
+        '/GameGuideView': (context) => ColoredWidget(child : GameGuideView(title: "Jeu de recherche d'objets"),  defaultColor : defaultColor),
+      },
     );
   }
 }
@@ -51,11 +48,13 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    // Firestore.instance.collection('appearance').document('current').get().then((appearance) {
-    //   // ColorChanger.of(context)?.color =
-    //   //     Color.fromARGB(0xFF, appearance['color_red'], appearance['color_green'], appearance['color_blue'])
-    //       ;
-    // });
+
+    print('foo');
+    Firestore.instance.collection('/Musées/NiceSport/plugins/ChangerCouleurs/config').document('current').get().then((colors) {
+        print('bar');
+        ColorChanger.of(context)?.color =
+          Color.fromARGB(0xFF, colors['color_red'], colors['color_green'], colors['color_blue']);
+    });
   }
 
   @override
