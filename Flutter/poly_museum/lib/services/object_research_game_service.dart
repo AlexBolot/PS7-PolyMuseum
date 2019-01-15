@@ -13,6 +13,7 @@ class ObjectResearchGameService {
   static List<Objects> objectsGame = List();
   static bool gameStatusBegin;
   static bool gameStatusEnd;
+  static Map<Object, List<int>> objectsteams = new Map();
 
   static updateGameStatus(VoidCallback callback, userGroup) {
     gameStatusStream = _firestore
@@ -24,7 +25,6 @@ class ObjectResearchGameService {
         .listen((groupData) {
       gameStatusBegin = groupData.data["isStarted"];
       gameStatusEnd = groupData.data["isFinished"];
-
       callback();
     });
   }
@@ -109,6 +109,37 @@ class ObjectResearchGameService {
           }
         });
       });
+      int i = getEndGame(userGroup);
+      print(i);
+    });
+  }
+
+  static getEndGame(userGroup) {
+    int nbEquipes;
+    StreamSubscription<DocumentSnapshot> teams;
+    teams = _firestore
+        .collection("Musées")
+        .document("NiceSport")
+        .collection("GroupesVisite")
+        .document("groupe$userGroup")
+        .collection("JeuRechercheObjet")
+        .document("Equipes")
+        .snapshots()
+        .listen((snap) async {
+      nbEquipes = snap.data.length;
+      for (Objects o in objectsGame) {
+        int nbObjets = objectsGame.length;
+        for (int i = 0; i < nbEquipes; i++) {
+          int nbObjetsParEquipe = 0;
+          if (o.discoveredByTeams.contains(i)) {
+            nbObjetsParEquipe++;
+          }
+          if (nbObjets == nbObjetsParEquipe) {
+            return i;
+          }
+        }
+      }
+      return -1;
     });
   }
 

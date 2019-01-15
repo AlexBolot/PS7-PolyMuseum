@@ -91,6 +91,8 @@ class _GameGuideViewState extends State<GameGuideView> {
     return list;
   }
 
+  //Pour les objets : les récupérer tous, avec leur param trouvé par, et si une des équipes est dans tous les trouvé par on le signale au guide
+
   void displayMessage(String message) {
     showDialog(
       context: context,

@@ -5,7 +5,6 @@ import 'package:flutter/services.dart';
 import 'package:poly_museum/model/objects.dart';
 import 'package:poly_museum/services/object_research_game_service.dart';
 
-
 class ObjectResearchGameView extends StatefulWidget {
   @override
   _ObjectResearchGameViewState createState() => _ObjectResearchGameViewState();
@@ -47,7 +46,7 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
   }
 
   getExpenseItems() {
-    if (ObjectResearchGameService.gameStatusEnd) {
+    if (ObjectResearchGameService.gameStatusEnd ?? false) {
       Card card = addNewCard("Partie terminée");
       Card card2 = addNewCard("L'équipe vainqueur est l'équipe numéro");
 
@@ -56,7 +55,7 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
       list.add(card2);
       return list;
     } else {
-      if (ObjectResearchGameService.gameStatusBegin) {
+      if (ObjectResearchGameService.gameStatusBegin??false) {
         return ObjectResearchGameService.objectsGame.map((object) {
           return GestureDetector(
             onTap: () {
@@ -170,7 +169,7 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
     );
   }
 
-  Card addNewCard(String text){
+  Card addNewCard(String text) {
     return Card(
       margin: EdgeInsets.symmetric(horizontal: 38.0, vertical: 4.0),
       child: Center(
