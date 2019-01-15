@@ -48,8 +48,9 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
 
   getExpenseItems() {
     if (ObjectResearchGameService.gameStatusEnd ?? false) {
+      String winningTeam = ObjectResearchGameService.winningTeam.toString();
       Card card = addNewCard("Partie terminée");
-      Card card2 = addNewCard("L'équipe vainqueur est l'équipe numéro");
+      Card card2 = addNewCard("L'équipe vainqueur est l'équipe numéro $winningTeam");
 
       List<Widget> list = [];
       list.add(card);
