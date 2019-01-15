@@ -1,3 +1,4 @@
+import os
 import json
 import firebase_admin
 from flask import Flask
@@ -6,9 +7,9 @@ from flask_api import status
 
 from firebase_admin import credentials, firestore, storage
 
-import os
+from config import *
 
-cred = credentials.Certificate('/home/basil/Projets/PS7/polymuseum-ps7-firebase-adminsdk-0gks3-473facb980.json');
+cred = credentials.Certificate(certificate_path);
 firebase_admin.initialize_app(cred, {
     'project_id' : 'polymuseum-ps7',
     'storageBucket' : 'polymuseum-ps7.appspot.com'

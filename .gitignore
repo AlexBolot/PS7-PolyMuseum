@@ -8,3 +8,7 @@ build
 
 PS7.iml
 gradle/
+/Web/api/config.py
+/.markdown-preview.html
+web/api/__pycache/
+/Web/api/__pycache__
