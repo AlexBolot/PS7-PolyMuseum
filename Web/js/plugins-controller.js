@@ -54,15 +54,27 @@ PluginsController.prototype.createListElement = function(plugin) {
     var listElement = $('<li>')
     	.attr('id', 'plugin-' + plugin.id + '-le')
 	.attr('class', 'plugin-list-element');
+
+    var self = this;
+    var checkbox = $('<input>')
+	.attr('id', 'plugin-' + plugin.id + '-cb')
+	.attr('type', 'checkbox')
+	.on('change', function() {
+	    activated = false;
+
+	    if ($(this).prop('checked')) {
+		activated = true;
+	    }
+	    
+	    self.updatePluginState(plugin.id, activated);
+	});
     
     listElement
 	.append($('<div>')
 		.attr('class', 'switch')
 		.text(text)
 		.prepend($('<label>')
-			 .append($('<input>')
-				 .attr('id', 'plugin-' + plugin.id + '-cb')
-				 .attr('type', 'checkbox'))
+			 .append(checkbox)
 			 .append($('<span>')
 				 .attr('class', 'lever'))));
 
@@ -106,6 +118,13 @@ PluginsController.prototype.createListElement = function(plugin) {
     }
 
     this.block.append(listElement);
+}
+
+PluginsController.prototype.updatePluginState = function(pluginId, value) {
+    this.database
+	.collection("Musées/NiceSport/plugins")
+	.doc(pluginId)
+	.set({"activated" : value });
 }
 
 PluginsController.prototype.uploadConfig = function(formData) {
