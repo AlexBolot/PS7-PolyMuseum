@@ -59,7 +59,7 @@ def upload_plugin(filepath, filename, config, libelle, pluginName, qualifiedName
     
     with open(filepath, 'rb') as f:
         blob.upload_from_file(f)
-
+    
     ref = db.collection('Plugins').document(libelle)
     ref.set({ 'config' : config,
               'downloadURL' : blob._get_download_url(),
