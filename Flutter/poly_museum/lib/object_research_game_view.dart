@@ -2,9 +2,9 @@ import 'package:barcode_scan/barcode_scan.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'package:poly_museum/global.dart';
 import 'package:poly_museum/model/objects.dart';
 import 'package:poly_museum/services/object_research_game_service.dart';
-
 
 class ObjectResearchGameView extends StatefulWidget {
   @override
@@ -12,10 +12,10 @@ class ObjectResearchGameView extends StatefulWidget {
 }
 
 class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
-  String barcode = "";
-  String userGroup = "1";
-  String userTeam = "1";
-  String userName = "Paul";
+  String barcode = globalBarcode;
+  String userGroup = globalUserGroup;
+  String userTeam = globalUserTeam;
+  String userName = globalUserName;
 
   VoidCallback _refresh() {
     setState(() {});
@@ -47,20 +47,27 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
   }
 
   getExpenseItems() {
-    if (ObjectResearchGameService.gameStatusEnd) {
+    if (ObjectResearchGameService.gameStatusEnd ?? false) {
+      String winningTeam = ObjectResearchGameService.winningTeam.toString();
       Card card = addNewCard("Partie terminée");
-      Card card2 = addNewCard("L'équipe vainqueur est l'équipe numéro");
+      Card card2;
+      if(winningTeam == '-1'){
+        card2 = addNewCard("Aucune équipe n'a remporté le jeu");
+      }else{
+        card2 = addNewCard("L'équipe vainqueur est l'équipe numéro $winningTeam");
+      }
+
 
       List<Widget> list = [];
       list.add(card);
       list.add(card2);
       return list;
     } else {
-      if (ObjectResearchGameService.gameStatusBegin) {
+      if (ObjectResearchGameService.gameStatusBegin??false) {
         return ObjectResearchGameService.objectsGame.map((object) {
           return GestureDetector(
             onTap: () {
-              if (object.discoveredByTeams.contains(userGroup)) {
+              if (object.discoveredByTeams.contains(userTeam)) {
                 displayObjectAlreadyFound();
               } else {
                 scan(object);
@@ -170,7 +177,7 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
     );
   }
 
-  Card addNewCard(String text){
+  Card addNewCard(String text) {
     return Card(
       margin: EdgeInsets.symmetric(horizontal: 38.0, vertical: 4.0),
       child: Center(
