@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+  <head>
     <meta charset="UTF-8">
     <title>Gestion Plugin PolyMuseum</title>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -10,6 +10,7 @@
 
     <!--Let browser know website is optimized for mobile-->
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="musee" content="NiceSport" />
     <script type="text/javascript" src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
     <script type="text/javascript" src="https://www.gstatic.com/firebasejs/5.7.3/firebase.js"></script>
     <script type="text/javascript" src="https://www.gstatic.com/firebasejs/5.7.2/firebase-app.js"></script>
@@ -17,52 +18,74 @@
     <script type="text/javascript" src="js/config.js"></script>
     <script type="text/javascript" src="js/materialize.min.js"></script>
     <script type="text/javascript" src="js/plugins-controller.js"></script>
-</head>
-<body>
-<nav class="light-blue lighten-1" role="navigation">
-    <div class="nav-wrapper container"><a id="logo-container" class="brand-logo"><img src="resources/img/logo.png"/>
-    </a>
-    </div>
-</nav>
-<div class="section no-pad-bot" id="index-banner">
-    <div class="container">
+    <script type="text/javascript" src="js/import-plugin-controller.js"></script>
+  </head>
+  <body>
+    <nav class="light-blue lighten-1" role="navigation">
+      <div class="nav-wrapper container"><a id="logo-container" class="brand-logo"><img src="resources/img/logo.png"/>
+	</a>
+      </div>
+    </nav>
+    <div class="section no-pad-bot" id="index-banner">
+      <div class="container">
         <br><br>
         <h1 class="header center blue-grey-text">Musée du Sport Gestion</h1>
         <br><br>
+      </div>
     </div>
-</div>
 
-<div class="container">
-  <div class="section">
+    <div class="container">
+      <div class="section">
+	<div class="row">
+	  <div class="col s12">
+            <div class="icon-block">
+              <h2 class="center light-blue-text"><i class="material-icons">dashboard</i></h2>
+              <h5 class="center">Plugins</h5>
+              <ul id ="plugins-list" class="light">
+              </ul>
+            </div>
+	  </div>
+	</div>
+      </div>
+    </div>
+    <br><br>
+</div>
+<div id="import-plugin-div">
+  <form enctype="multipart/form-data" method="post", action="">
+    <fieldset>
+      <label for="libelle">Libelle</label>
+      <input type="text" name="plugin-libelle" />
+      <label for="plugin-qualified-name">Nom qualifié</label>
+      <input type="text" name="plugin-qualified-name" />
+      <label for="plugin-type">Type</label>
+      <select name="plugin-type" style="display : block;">
+	<option value="THEME_PLUGIN">Theme</option>
+	<option value="FOO_PLUGIN">Foo</option>
+	<option value="BAR_PLUGIN">Bar</option>
+      </select>
+      <label for="plugin-require-config">Nécessite un fichier de configuration</label>
+      <input type="radio" name="plugin-require-config" style="opacity : 1.0; position : relative; pointer-events : auto;" value="Oui" /> Oui
+      <input type="radio" name="plugin-require-config" style="opacity : 1.0; position : relative; pointer-events : auto;" value="Non" checked /> Non
+    </fieldset>
+    <fieldset>
+      <label for="config-file">Import a plugin</label>
+      <input type="file" name="config-file" class="load-config-file" />
+    </fieldset>
+    <fieldset>
+      <button type="button">Envoyer</button>
+    </fieldset>
+  </form>
+</div>
+<footer class="page-footer blue">
+  <div class="container">
     <div class="row">
-      <div class="col s12">
-        <div class="icon-block">
-          <h2 class="center light-blue-text"><i class="material-icons">dashboard</i></h2>
-          <h5 class="center">Plugins</h5>
-          <ul id ="plugins-list" class="light">
-          </ul>
-        </div>
+      <div class="col l6 s12">
+        <h5 class="white-text">Company Bio</h5>
+        <p class="grey-text text-lighten-4">Projet réalisé par l'équipe AL-IHM 2 dans le cadre du PS7 2018-2019
+          de Polytech Nice Sophia.</p>
       </div>
     </div>
   </div>
-</div>
-<br><br>
-</div>
-
-<footer class="page-footer blue">
-    <div class="container">
-        <div class="row">
-            <div class="col l6 s12">
-                <h5 class="white-text">Company Bio</h5>
-                <p class="grey-text text-lighten-4">Projet réalisé par l'équipe AL-IHM 2 dans le cadre du PS7 2018-2019
-                    de Polytech Nice Sophia.</p>
-            </div>
-        </div>
-    </div>
 </footer>
-
-
-
-
 </body>
 </html>

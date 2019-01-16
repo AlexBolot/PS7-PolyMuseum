@@ -16,6 +16,7 @@ firebase_admin.initialize_app(cred, {
 })
 
 db = firestore.client()
+bucket = storage.bucket()
 
 def write_data(key, value, target):
     print(key + " : " + str(value) + "(" + target + ")")
@@ -43,26 +44,56 @@ def upload_recurs(tree, target):
         else:
             write_data(key, value, target)
         
-def upload_config(filepath):
+def upload_config(filepath, musee, plugin):
     with open(filepath) as f:
         data = json.load(f)
-    
-    target = data['target']
+
+    target = "/Musées/" + musee + "/plugins/" + plugin + '/config/current';
     
     upload_recurs(data['data'], target)
+
+############
+
+def upload_plugin(filepath, filename, config, libelle, pluginName, qualifiedName, pluginType):
+    blob = bucket.blob('Plugins/' + filename)
     
-#
+    with open(filepath, 'rb') as f:
+        blob.upload_from_file(f)
+    
+    ref = db.collection('Plugins').document(libelle)
+    ref.set({ 'config' : config,
+              'downloadURL' : blob._get_download_url(),
+              'libelle' : libelle,
+              'pluginName' : pluginName,
+              'qualifiedName' : qualifiedName,
+              'pluginType' : pluginType })
         
 app = Flask(__name__)
 
 @app.route('/upload', methods=['POST'])
-def upload():
+def upload_config_route():
     f = request.files['config-file']
     f.save('./uploads/' + f.filename)
-    upload_config('./uploads/' + f.filename)    
+    musee = request.args['musee']
+    plugin = request.args['plugin']
+    upload_config('./uploads/' + f.filename, musee, plugin)
 
+    return 'Sucess', status.HTTP_200_OK
+
+@app.route('/upload-plugin', methods=['POST'])
+def upload_plugin_route():
+    f = request.files['config-file']
+
+    require_config = True if (request.form['plugin-require-config'] == 'Oui') else False
+    libelle = request.form['plugin-libelle']
+    qualifiedName = request.form['plugin-qualified-name']
+    pluginType = request.form['plugin-type']
+    pluginName = request.files['config-file'].filename
     
+    f.save('./uploads/' + f.filename)
+    upload_plugin('./uploads/' + f.filename, f.filename, require_config, libelle, pluginName, qualifiedName, pluginType)
+
     return 'Sucess', status.HTTP_200_OK
 
 if __name__ == '__main__':
-    app.run()
+    app.run(host='0.0.0.0')

@@ -1,8 +1,7 @@
-
 function PluginsController(block) {
     this.block = block;
     this.database = firebase.firestore();
-    this.plugins = {};
+    this.plugins = [];
 }
 
 PluginsController.prototype.init = function() {
@@ -16,30 +15,36 @@ PluginsController.prototype.fetchData = function() {
 	.collection("Plugins")
 	.get()
 	.then(function(querySnapshot) {
+	    var index = 0;
+	    
     	    querySnapshot.forEach(function(document) {
 		var data = document.data()
 		var plugin =  {
+		    "index" : index++,
 		    "id" : document.id,
-		    "name" : data.name,
+		    "name" : data.libelle,
 		    "requires_config" : data.config,
-		    "activated" : false
+		    "activated" : ('activated' in data)? data.activated : false
 		};
 
-		self.plugins[document.id] = plugin;
+		self.plugins[plugin.id] = plugin;
 		
 		self.createListElement(plugin);
 	    });
 
-	    
+	    console.log(self.plugins);
 	    self.database
 		.collection("Musées/NiceSport/plugins")
 		.get()
 		.then(function(querySnapshot) {
 		    querySnapshot.forEach(function(document) {
-			if (document.id in self.plugins) {
-			    self.plugins[document.id].activated = true;
+			var data = document.data()
+
+			if (data.ref in self.plugins && data.activated) {
+			    var index = self.plugins[data.ref].index;
+			    self.plugins[data.ref].activated = true;
 			    self.block
-				.find('input#plugin-' + document.id + '-cb')
+				.find('input#plugin-' + index + '-cb')
 				.attr('checked', true)
 			}
 		    });
@@ -52,12 +57,12 @@ PluginsController.prototype.createListElement = function(plugin) {
     text += (plugin.activated)? ' activé' : ' désactivé';
     
     var listElement = $('<li>')
-    	.attr('id', 'plugin-' + plugin.id + '-le')
+    	.attr('id', 'plugin-' + plugin.index + '-le')
 	.attr('class', 'plugin-list-element');
 
     var self = this;
     var checkbox = $('<input>')
-	.attr('id', 'plugin-' + plugin.id + '-cb')
+	.attr('id', 'plugin-' + plugin.index + '-cb')
 	.attr('type', 'checkbox')
 	.on('change', function() {
 	    activated = false;
@@ -66,7 +71,7 @@ PluginsController.prototype.createListElement = function(plugin) {
 		activated = true;
 	    }
 	    
-	    self.updatePluginState(plugin.id, activated);
+	    self.updatePluginState(plugin, activated);
 	});
     
     listElement
@@ -94,7 +99,6 @@ PluginsController.prototype.createListElement = function(plugin) {
 	    .attr('class', 'load-config-file')
 	    .attr('type', 'file')
 	    .attr('name', 'config-file');
-	
 
 	var submitBtn = $('<button>')
 	    .attr('type', 'button')
@@ -102,7 +106,8 @@ PluginsController.prototype.createListElement = function(plugin) {
 	    .click(function() {
 		console.log($(this).closest('form')[0]);
 		var formData = new FormData($(this).closest('form')[0]);
-		self.uploadConfig(formData);
+		var musee = $('meta[name=musee]').attr('content');
+		self.uploadConfig(formData, musee, plugin.id);
 	    });
 
 	
@@ -120,17 +125,18 @@ PluginsController.prototype.createListElement = function(plugin) {
     this.block.append(listElement);
 }
 
-PluginsController.prototype.updatePluginState = function(pluginId, value) {
+PluginsController.prototype.updatePluginState = function(plugin, value) {
     this.database
 	.collection("Musées/NiceSport/plugins")
-	.doc(pluginId)
-	.set({"activated" : value });
+	.doc(plugin.id)
+	.set({"activated" : value,
+	      "ref" : plugin.id });
 }
 
-PluginsController.prototype.uploadConfig = function(formData) {
+PluginsController.prototype.uploadConfig = function(formData, musee, plugin) {
     $.ajax({
 	type : 'POST',
-	url : '/ajax/upload',
+	url : '/ajax/upload?musee=' + musee + '&plugin=' + plugin,
 	data : formData,
 	contentType : false,
 	cache : false,
