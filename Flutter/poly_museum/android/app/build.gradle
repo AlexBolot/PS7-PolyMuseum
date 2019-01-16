@@ -31,9 +31,19 @@ android {
         disable 'InvalidPackage'
     }
 
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+
+    dependencies{
+        implementation 'com.github.AlexBolot:PS7-SDK:release-1.1'
+    }
+
     defaultConfig {
         applicationId "polytech.al.imh.polymuseum"
-        minSdkVersion 16
+        minSdkVersion 24
         multiDexEnabled true
         targetSdkVersion 27
         versionCode flutterVersionCode.toInteger()
