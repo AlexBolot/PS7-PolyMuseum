@@ -3,6 +3,7 @@ import 'package:poly_museum/global.dart';
 import 'package:poly_museum/ColorChanger.dart';
 import 'package:poly_museum/services/group_service.dart';
 import 'package:poly_museum/services/object_research_game_service.dart';
+import 'package:poly_museum/services/service_provider.dart';
 
 class GameGuideView extends StatefulWidget {
   final String title;
@@ -14,15 +15,16 @@ class GameGuideView extends StatefulWidget {
 }
 
 class _GameGuideViewState extends State<GameGuideView> {
-  GroupService groupService = GroupService();
+  GroupService groupService = ServiceProvider.groupService;
+  ObjectResearchGameService gameService = ServiceProvider.gameService;
+
   String code = currentGroupID;
 
   @override
   void initState() {
     super.initState();
-    ObjectResearchGameService.getTeams(_refresh, currentGroupID);
-    ObjectResearchGameService.updateResearchGameDescriptions(
-        _refresh, globalUserGroup, globalUserTeam);
+    gameService.getTeams(_refresh, currentGroupID);
+    gameService.updateResearchGameDescriptions(_refresh, globalUserGroup, globalUserTeam);
   }
 
   VoidCallback _refresh() {
@@ -32,7 +34,7 @@ class _GameGuideViewState extends State<GameGuideView> {
   @override
   void dispose() {
     super.dispose();
-    ObjectResearchGameService.disposeObjectsDiscoveredStream();
+    gameService.disposeObjectsDiscoveredStream();
   }
 
   @override
@@ -56,21 +58,18 @@ class _GameGuideViewState extends State<GameGuideView> {
         padding: EdgeInsets.all(8.0),
         width: double.infinity,
         child: FlatButton(
-          child: Text('Arrêter le jeu',
-              style: TextStyle(color: Colors.lightBlue.withOpacity(0.7))),
+          child: Text('Arrêter le jeu', style: TextStyle(color: Colors.lightBlue.withOpacity(0.7))),
           onPressed: () async {
-            ObjectResearchGameService.endGame(_refresh, currentGroupID);
+            gameService.endGame(_refresh, currentGroupID);
             displayMessage("Fin du jeu.");
           },
         ),
       ),
     ));
     Map<int, String> map = new Map();
-    for (String s in ObjectResearchGameService.teamsGame) {
+    for (String s in gameService.teamsGame) {
       List t = s.split(":");
-      map.update(
-          int.parse(t[0]), (String) => map[int.parse(t[0])] + ", " + t[1],
-          ifAbsent: () => t[1]);
+      map.update(int.parse(t[0]), (String) => map[int.parse(t[0])] + ", " + t[1], ifAbsent: () => t[1]);
     }
     for (int i in map.keys) {
       list.add(Card(
@@ -80,8 +79,7 @@ class _GameGuideViewState extends State<GameGuideView> {
           padding: EdgeInsets.all(8.0),
           width: double.infinity,
           child: ListTile(
-            title: Text('Equipe ' + i.toString(),
-                style: TextStyle(color: Colors.lightBlue.withOpacity(0.7))),
+            title: Text('Equipe ' + i.toString(), style: TextStyle(color: Colors.lightBlue.withOpacity(0.7))),
             subtitle: Text(map[i]),
           ),
         ),
@@ -91,9 +89,9 @@ class _GameGuideViewState extends State<GameGuideView> {
     return list;
   }
 
-  Widget displayEndGame(){
-    if(ObjectResearchGameService.winningTeam != -1){
-      String winningTeam = ObjectResearchGameService.winningTeam.toString();
+  Widget displayEndGame() {
+    if (gameService.winningTeam != -1) {
+      String winningTeam = gameService.winningTeam.toString();
       return Card(
         margin: EdgeInsets.all(16.0),
         elevation: 8.0,
@@ -101,15 +99,16 @@ class _GameGuideViewState extends State<GameGuideView> {
           padding: EdgeInsets.all(8.0),
           width: double.infinity,
           child: FlatButton(
-            child: Text("L'équipe $winningTeam a gagné !",
-                style: TextStyle(color: Colors.lightBlue.withOpacity(0.7))),
+            child: Text("L'équipe $winningTeam a gagné !", style: TextStyle(color: Colors.lightBlue.withOpacity(0.7))),
+            onPressed: () {},
           ),
         ),
       );
-    }else{
+    } else {
       return Container();
     }
   }
+
   //Pour les objets : les récupérer tous, avec leur param trouvé par, et si une des équipes est dans tous les trouvé par on le signale au guide
 
   void displayMessage(String message) {

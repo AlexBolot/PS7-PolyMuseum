@@ -2,70 +2,53 @@ import 'dart:async';
 import 'dart:ui';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:poly_museum/global.dart';
 import 'package:poly_museum/model/objects.dart';
 
 class ObjectResearchGameService {
-  static StreamSubscription<QuerySnapshot> objectsDiscoveredStream;
-  static StreamSubscription<DocumentSnapshot> gameStatusStream;
+  StreamSubscription<QuerySnapshot> _objectsDiscoveredStream;
+  StreamSubscription<DocumentSnapshot> _gameStatusStream;
+  StreamSubscription<DocumentSnapshot> _teamsStream;
 
-  static final Firestore _firestore = Firestore.instance;
+  List<String> teamsGame = [];
+  List<Objects> objectsGame = [];
+  Map<Object, List<int>> objectsteams = {};
+  int numberTeams;
+  int winningTeam = -1;
 
-  static List<Objects> objectsGame = List();
-  static bool gameStatusBegin;
-  static bool gameStatusEnd;
-  static int numberTeams;
-  static Map<Object, List<int>> objectsteams = new Map();
-  static int winningTeam = -1;
+  bool _gameStatusBegin;
+  bool _gameStatusEnd;
 
-  static updateGameStatus(VoidCallback callback, userGroup) {
-    gameStatusStream = _firestore
-        .collection("Musées")
-        .document("NiceSport")
-        .collection("GroupesVisite")
-        .document("groupe$userGroup")
-        .snapshots()
-        .listen((groupData) {
-      gameStatusBegin = groupData.data["isStarted"];
-      gameStatusEnd = groupData.data["isFinished"];
-      callback();
+  bool get gameStatusBegin => _gameStatusBegin ?? false;
+
+  bool get gameStatusEnd => _gameStatusEnd ?? false;
+
+  void updateGameStatus(VoidCallback callback, userGroup) {
+    _gameStatusStream = museumReference.collection("GroupesVisite").document("groupe$userGroup").snapshots().listen(
+      (groupData) {
+        _gameStatusBegin = groupData.data["isStarted"];
+        _gameStatusEnd = groupData.data["isFinished"];
+        callback();
+      },
+    );
+  }
+
+  void startGame(VoidCallback callback, userGroup) {
+    museumReference.collection("GroupesVisite").document("groupe$userGroup").updateData({
+      'isFinished': false,
+      'isStarted': true,
     });
   }
 
-  static startGame(VoidCallback callback, userGroup) {
-    Future.delayed(new Duration(seconds: 1), () {
-      final DocumentReference postRef = Firestore.instance
-          .collection("Musées")
-          .document("NiceSport")
-          .collection("GroupesVisite")
-          .document("groupe$userGroup");
-      Map<String, dynamic> m = new Map();
-      m.update('isFinished', (bool) => false, ifAbsent: () => false);
-      m.update('isStarted', (bool) => true, ifAbsent: () => true);
-      postRef.updateData(m);
+  void endGame(VoidCallback callback, userGroup) {
+    museumReference.collection("GroupesVisite").document("groupe$userGroup").updateData({
+      'isFinished': true,
+      'isStarted': false,
     });
   }
 
-  static endGame(VoidCallback callback, userGroup) {
-    Future.delayed(new Duration(seconds: 1), () {
-      final DocumentReference postRef = Firestore.instance
-          .collection("Musées")
-          .document("NiceSport")
-          .collection("GroupesVisite")
-          .document("groupe$userGroup");
-      Map<String, dynamic> m = new Map();
-      m.update('isStarted', (bool) => false, ifAbsent: () => false);
-      m.update('isFinished', (bool) => true, ifAbsent: () => true);
-      postRef.updateData(m);
-    });
-  }
-
-  static List<String> teamsGame = List();
-
-  static updateResearchGameDescriptions(
-      VoidCallback callback, userGroup, userTeam) {
-    objectsDiscoveredStream = _firestore
-        .collection("Musées")
-        .document("NiceSport")
+  void updateResearchGameDescriptions(VoidCallback callback, userGroup, userTeam) {
+    _objectsDiscoveredStream = museumReference
         .collection("GroupesVisite")
         .document("groupe$userGroup")
         .collection("JeuRechercheObjet")
@@ -79,11 +62,7 @@ class ObjectResearchGameService {
             DocumentSnapshot ref = await value["descriptionRef"].get();
             List teamFoundObject = value['trouveParEquipes'];
             objectsGame.add(new Objects(
-                value["descriptionRef"],
-                ref.data["description"],
-                ref.data["barCode"],
-                teamFoundObject,
-                key));
+                value["descriptionRef"], ref.data["description"], ref.data["barCode"], teamFoundObject, key));
           }
 
           for (String s in doc.data.keys) {
@@ -91,53 +70,37 @@ class ObjectResearchGameService {
           }
         }
       }
-      if(numberTeams!=null){
+      if (numberTeams != null) {
         winningTeam = checkEndGame();
       }
       callback();
     });
     getTeamNumber(userGroup);
-
   }
 
-  static teamFoundObject(
-      userGroup, keyObject, description, List teamFoundObject) {
-    Future.delayed(new Duration(seconds: 1), () {
-      final DocumentReference postRef = Firestore.instance
-          .collection("Musées")
-          .document("NiceSport")
-          .collection("GroupesVisite")
-          .document("groupe$userGroup")
-          .collection("JeuRechercheObjet")
-          .document("Objets");
-      Firestore.instance.runTransaction((Transaction tx) async {
-        await tx.update(postRef, <String, dynamic>{
-          keyObject: {
-            'descriptionRef': description,
-            'trouveParEquipes': teamFoundObject
-          }
-        });
-      });
-
-    });
+  void teamFoundObject(userGroup, keyObject, description, List teamFoundObject) {
+    museumReference
+        .collection("GroupesVisite")
+        .document("groupe$userGroup")
+        .collection("JeuRechercheObjet")
+        .document("Objets")
+        .updateData({'descriptionRef': description, 'trouveParEquipes': teamFoundObject});
   }
 
-  static getTeamNumber(userGroup) {
+  void getTeamNumber(userGroup) {
     StreamSubscription<DocumentSnapshot> teams;
-    teams = _firestore
-        .collection("Musées")
-        .document("NiceSport")
+    teams = museumReference
         .collection("GroupesVisite")
         .document("groupe$userGroup")
         .collection("JeuRechercheObjet")
         .document("Equipes")
         .snapshots()
-        .listen((snap)  {
+        .listen((snap) {
       numberTeams = snap.data.length;
     });
   }
 
-  static checkEndGame(){
+  int checkEndGame() {
     int nbObjects = objectsGame.length;
     for (int i = 0; i < numberTeams; i++) {
       int nbObjetsParEquipe = 0;
@@ -153,31 +116,29 @@ class ObjectResearchGameService {
     return -1;
   }
 
-  static getTeams(VoidCallback callback, userGroup) {
-    List t = new List<String>();
-    StreamSubscription<DocumentSnapshot> teams;
-    teams = _firestore
-        .collection("Musées")
-        .document("NiceSport")
+  void getTeams(VoidCallback callback, userGroup) {
+    _teamsStream = museumReference
         .collection("GroupesVisite")
         .document("groupe$userGroup")
         .collection("JeuRechercheObjet")
         .document("Equipes")
         .snapshots()
         .listen((snap) async {
-      teamsGame = List();
+      teamsGame = [];
       for (String s in snap.data.keys) {
         for (DocumentReference d in snap.data[s]["membres"]) {
           String prenom = ((await d.get())["prenom"]);
           teamsGame.add("$s:$prenom");
         }
       }
+
       callback();
     });
-    return teamsGame;
   }
 
-  static disposeObjectsDiscoveredStream() => objectsDiscoveredStream?.cancel();
+  void disposeObjectsDiscoveredStream() => _objectsDiscoveredStream?.cancel();
 
-  static disposeGameStatusStream() => gameStatusStream?.cancel();
+  void disposeGameStatusStream() => _gameStatusStream?.cancel();
+
+  void disposeTeamsStream() => _teamsStream?.cancel();
 }

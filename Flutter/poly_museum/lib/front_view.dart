@@ -1,6 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:poly_museum/ColorChanger.dart';
 
 class FrontView extends StatefulWidget {
   final String title;
@@ -12,14 +10,6 @@ class FrontView extends StatefulWidget {
 }
 
 class _FrontViewState extends State<FrontView> {
-  @override
-  void initState() {
-    super.initState();
-   /* Firestore.instance.collection('appearance').document('current').get().then((appearance) {
-      ColorChanger.of(context)?.color =
-          Color.fromARGB(0xFF, appearance['color_red'], appearance['color_green'], appearance['color_blue']);
-    }); */
-  }
 
   @override
   Widget build(BuildContext context) {

@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:poly_museum/global.dart';
 import 'package:poly_museum/model/objects.dart';
 import 'package:poly_museum/services/object_research_game_service.dart';
+import 'package:poly_museum/services/service_provider.dart';
 
 class ObjectResearchGameView extends StatefulWidget {
   @override
@@ -17,6 +18,8 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
   String userTeam = globalUserTeam;
   String userName = globalUserName;
 
+  ObjectResearchGameService gameService = ServiceProvider.gameService;
+
   VoidCallback _refresh() {
     setState(() {});
   }
@@ -24,16 +27,15 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
   @override
   void initState() {
     super.initState();
-    ObjectResearchGameService.updateResearchGameDescriptions(
-        _refresh, userGroup, userTeam);
-    ObjectResearchGameService.updateGameStatus(_refresh, userGroup);
+    gameService.updateResearchGameDescriptions(_refresh, userGroup, userTeam);
+    gameService.updateGameStatus(_refresh, userGroup);
   }
 
   @override
   void dispose() {
     super.dispose();
-    ObjectResearchGameService.disposeObjectsDiscoveredStream();
-    ObjectResearchGameService.disposeGameStatusStream();
+    gameService.disposeObjectsDiscoveredStream();
+    gameService.disposeGameStatusStream();
   }
 
   @override
@@ -47,8 +49,8 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
   }
 
   getExpenseItems() {
-    if (ObjectResearchGameService.gameStatusEnd ?? false) {
-      String winningTeam = ObjectResearchGameService.winningTeam.toString();
+    if (gameService.gameStatusEnd) {
+      String winningTeam = gameService.winningTeam.toString();
       Card card = addNewCard("Partie terminée");
       Card card2;
       if(winningTeam == '-1'){
@@ -63,8 +65,8 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
       list.add(card2);
       return list;
     } else {
-      if (ObjectResearchGameService.gameStatusBegin??false) {
-        return ObjectResearchGameService.objectsGame.map((object) {
+      if (gameService.gameStatusBegin) {
+        return gameService.objectsGame.map((object) {
           return GestureDetector(
             onTap: () {
               if (object.discoveredByTeams.contains(userTeam)) {
@@ -126,7 +128,7 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
 
     Future.delayed(new Duration(seconds: 1), () {
       if (correctObjectFound) {
-        ObjectResearchGameService.teamFoundObject(
+        gameService.teamFoundObject(
             userGroup, keyObject, object.descriptionReference, objectFound);
       }
       displayResult(correctObjectFound);
@@ -195,10 +197,6 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
   }
 
   String textResult(result) {
-    if (result == true) {
-      return "Bonne réponse ! Vous avez trouvé";
-    } else {
-      return "Mauvaise réponse ! Continuez de chercher";
-    }
+    return result ? "Bonne réponse ! Vous avez trouvé" : "Mauvaise réponse ! Continuez de chercher";
   }
 }

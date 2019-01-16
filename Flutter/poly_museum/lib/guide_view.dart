@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:poly_museum/global.dart';
-import 'package:poly_museum/ColorChanger.dart';
 import 'package:poly_museum/services/group_service.dart';
 import 'package:poly_museum/services/object_research_game_service.dart';
+import 'package:poly_museum/services/service_provider.dart';
 import 'package:uuid/uuid.dart';
 
 class GuideView extends StatefulWidget {
@@ -15,28 +15,12 @@ class GuideView extends StatefulWidget {
 }
 
 class _GuideViewState extends State<GuideView> {
-  GroupService groupService = GroupService();
-  ObjectResearchGameService gameService = ObjectResearchGameService();
+  GroupService groupService = ServiceProvider.groupService;
+  ObjectResearchGameService gameService = ServiceProvider.gameService;
   String code = '';
 
   VoidCallback refresh() {
     setState(() {});
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    /*Firestore.instance
-        .collection('appearance')
-        .document('current')
-        .get()
-        .then((appearance) {
-      ColorChanger.of(context)?.color = Color.fromARGB(
-          0xFF,
-          appearance['color_red'],
-          appearance['color_green'],
-          appearance['color_blue']);
-    });*/
   }
 
   @override
@@ -97,7 +81,7 @@ class _GuideViewState extends State<GuideView> {
           child: Text('Lancer un jeu avec le dernier groupe crée',
               style: TextStyle(color: Colors.lightBlue.withOpacity(0.7))),
           onPressed: () async {
-            ObjectResearchGameService.startGame(refresh, currentGroupID);
+            gameService.startGame(refresh, currentGroupID);
             moveTo('/GameGuideView');
           },
         ),

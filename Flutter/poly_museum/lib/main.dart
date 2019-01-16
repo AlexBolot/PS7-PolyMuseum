@@ -6,6 +6,7 @@ import 'package:poly_museum/game_guide_view.dart';
 import 'package:poly_museum/guide_view.dart';
 import 'package:poly_museum/services/group_service.dart';
 import 'package:poly_museum/services/plugin_service.dart';
+import 'package:poly_museum/services/service_provider.dart';
 import 'ColorChanger.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -15,17 +16,17 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    GroupService().streamGroups();
+    ServiceProvider.groupService.streamGroups();
 
-    PluginService().streamPluginsData().then((value) async {
-     await PluginService.initPlugins();
-     await PluginService.processThemePlugins();
+    PluginService pluginService = ServiceProvider.pluginService;
+
+    pluginService.streamPluginsData().then((value) async {
+     await pluginService.initPlugins();
+     await pluginService.processThemePlugins();
     });
 
     appBuilder = AppBuilder(
       builder: (context) {
-        print('-- build');
-
         return MaterialApp(
           title: 'PolyMuseum',
           theme: globalTheme,
@@ -56,15 +57,6 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final String nomMusee = 'Musée du Sport';
-
-  @override
-  void initState() {
-    super.initState();
-  /*  Firestore.instance.collection('appearance').document('current').get().then((appearance) {
-      ColorChanger.of(context)?.color =
-          Color.fromARGB(0xFF, appearance['color_red'], appearance['color_green'], appearance['color_blue']);
-    });*/
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -189,7 +181,7 @@ class _MyHomePageState extends State<MyHomePage> {
     String name = nameController.text.trim();
     String code = codeController.text.trim();
 
-    GroupService().addMemberToGroup(name, code);
+    ServiceProvider.groupService.addMemberToGroup(name, code);
 
     Navigator.of(context).pushNamed('/VisitorView');
   }
