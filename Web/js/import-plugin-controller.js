@@ -1,7 +1,8 @@
-function ImportPluginController(block) {
+function ImportPluginController(block, pluginsController) {
     this.block = block;
     this.database = firebase.firestore();
     this.form = block.find('form');
+    this.pluginsController = pluginsController;
 }
 
 ImportPluginController.prototype.init = function() {
@@ -14,6 +15,8 @@ ImportPluginController.prototype.init = function() {
 }
 
 ImportPluginController.prototype.uploadPlugin = function(formData) {
+    var self = this;
+    
     $.ajax({
 	type : 'POST',
 	url : '/ajax/upload-plugin',
@@ -22,7 +25,7 @@ ImportPluginController.prototype.uploadPlugin = function(formData) {
 	cache : false,
 	processData : false,
 	success : function(response) {
-	    console.log(response);
+	    self.pluginsController.reloadPlugins();
 	},
 	error : function(error) {
 	    console.log(error);	    
@@ -30,8 +33,3 @@ ImportPluginController.prototype.uploadPlugin = function(formData) {
     });
 }
 
-$(document).ready(function() {
-    $('div#import-plugin-div').each(function() {
-	new ImportPluginController($(this)).init();
-    });
-});
