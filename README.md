@@ -14,64 +14,64 @@ Pour pouvoir utiliser l'application web, il faut un serveur web apache en cours 
 Installation sur Archlinux/Manjao
 - Installez le serveur web apache 2.4 sur votre machine
 
-$ sudo pacman -Syu apache php php-apache
+`$ sudo pacman -Syu apache php php-apache`
 
 - Dans le fichier httpd.conf (situé dans le répertoire /etc/httpd/conf/httpd.conf sur Archlinux)
 
-    * Decommentez la ligne 'LoadModule proxy\_module modules/mod_proxy.so'
-    * Decommentez la ligne 'LoadModule proxy\_http\_module modules/mod_proxy\_http.so'
+    * Decommentez la ligne `LoadModule proxy\_module modules/mod_proxy.so`
+    * Decommentez la ligne `LoadModule proxy\_http\_module modules/mod_proxy\_http.so`
 
-- Sous l'instruction 'Listen 80', ajoutez les lignes suivantes :
+- Sous l'instruction `Listen 80`, ajoutez les lignes suivantes :
 
-<VirtualHost 127.0.0.1:80>
+`<VirtualHost 127.0.0.1:80>`
 
-ProxyPreserveHost On
+`ProxyPreserveHost On`
 
-ProxyPass /ajax http://127.0.0.1:5000
+`ProxyPass /ajax http://127.0.0.1:5000`
 
-ProxyPassReverse /ajax http://127.0.0.1:5000
+`ProxyPassReverse /ajax http://127.0.0.1:5000`
 
-<\/VirtualHost>
+`</VirtualHost>`
 
-- Dabs votre répertoire personnel, créez un répertoire public_html
+- Dabs votre répertoire personnel, créez un répertoire `public_html`
 
-  $ mkdir public_html
+ `$ mkdir public_html`
 
 - Autorisez apache à lire son contenu :
 
-  $ chmod o+x
+ `$ chmod o+x`
 
-  $ chmod o+x ~/public_html
+ `$ chmod o+x ~/public_html`
 
-- Ajouter un lien symbolique dans le répertoire public_html vers le répertoire Web du projet
+- Ajouter un lien symbolique dans le répertoire `public_html` vers le répertoire Web du projet
 
-  $ cd ~/public_html
-  $ ln -s <Chemin vers le projet>/Web PS7-web/ 
+ `$ cd ~/public_html`
+ `$ ln -s <Chemin vers le projet>/Web PS7-web/ `
 
 - Démarrez le serveur
 
-  $ sudo systemctl start httpd
+ `$ sudo systemctl start httpd`
 
-Vous pouvez maintenant accéder à l'application Web à travers l'adresse 127.0.0.1:80.
+Vous pouvez maintenant accéder à l'application Web à travers l'adresse `127.0.0.1:80`.
 
 ### 2. Serveur d'upload de fichiers de configuration
 - Si pip n'est pas installé sur votre machine installez le :
 
-  $ sudo pacman -Syu pip
+ `$ sudo pacman -Syu pip`
 
 - Installez les paquets suivants :
 
-  $ pip install --user firebase_admoin
-  $ pip install --user flask
-  $ pip install --user flask_api
+ `$ pip install --user firebase_admoin`
+ `$ pip install --user flask`
+ `$ pip install --user flask_api`
 
-- Generez un certificat JSON à travers l'interface polymuseum et placer son contenu dans le répertoire Web/api/config.py :
+- Generez un certificat JSON à travers l'interface polymuseum et placer son contenu dans le répertoire `Web/api/config.py` :
 
-  $ cd api
-  $ echo certificate_path = \' > config.py
-  $ cat <CHEMIN VERS LE CERTIFICAT> >> config.py
-  $ echo \' >> config.py
+ `$ cd api`
+ `$ echo certificate_path = \' > config.py`
+ `$ cat <CHEMIN VERS LE CERTIFICAT> >> config.py`
+ `$ echo \' >> config.py`
 
 - Démarrez le serveur
 
-  $ python upload-file.py
+ `$ python upload-file.py`
