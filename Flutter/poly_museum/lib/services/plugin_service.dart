@@ -40,13 +40,12 @@ class PluginService {
 
     for (DocumentSnapshot doc in querySnapshot.documents) {
       // Getting plugin file
-
-      if(doc.data["activated"] == "false") continue;
+      if(!doc.data["activated"]) continue;
 
       DocumentSnapshot ref = await doc.data["ref"].get();
       var plugin = Plugin.fromSnapshot(ref);
       plugins.add(plugin);
-
+      print(plugins);
       // Getting plugin config
 
       configRef = doc.reference.collection('config').document('current');
