@@ -19,12 +19,14 @@ PluginsController.prototype.fetchData = function() {
 	    
     	    querySnapshot.forEach(function(document) {
 		var data = document.data()
+		var referenceSegments = document.ref._key.path.segments;
 		var plugin =  {
 		    "index" : index++,
-		    "id" : document.id,
+		    "id" : referenceSegments[referenceSegments.length - 1],
 		    "name" : data.libelle,
 		    "requires_config" : data.config,
-		    "activated" : ('activated' in data)? data.activated : false
+		    "activated" : ('activated' in data)? data.activated : false,
+		    "reference" : document.ref
 		};
 
 		self.plugins[plugin.id] = plugin;
@@ -39,10 +41,12 @@ PluginsController.prototype.fetchData = function() {
 		.then(function(querySnapshot) {
 		    querySnapshot.forEach(function(document) {
 			var data = document.data()
+			var referenceSegments = data.ref._key.path.segments;
+			var id = referenceSegments[referenceSegments.length - 1];
 
-			if (data.ref in self.plugins && data.activated) {
-			    var index = self.plugins[data.ref].index;
-			    self.plugins[data.ref].activated = true;
+			if (id in self.plugins && data.activated) {
+			    var index = self.plugins[id].index;
+			    self.plugins[id].activated = true;
 			    self.block
 				.find('input#plugin-' + index + '-cb')
 				.attr('checked', true)
@@ -130,10 +134,12 @@ PluginsController.prototype.updatePluginState = function(plugin, value) {
 	.collection("Musées/NiceSport/plugins")
 	.doc(plugin.id)
 	.set({"activated" : value,
-	      "ref" : plugin.id });
+	      "ref" : plugin.reference });
 }
 
 PluginsController.prototype.uploadConfig = function(formData, musee, plugin) {
+    var self = this;
+    
     $.ajax({
 	type : 'POST',
 	url : '/ajax/upload?musee=' + musee + '&plugin=' + plugin,
@@ -150,8 +156,9 @@ PluginsController.prototype.uploadConfig = function(formData, musee, plugin) {
     });
 }
 
-$(document).ready(function() {
-    $('ul#plugins-list').each(function() {
-	new PluginsController($(this)).init();
-    });
-});
+PluginsController.prototype.reloadPlugins = function() {
+    this.plugins = [];
+    this.block.empty();
+    
+    this.fetchData();
+}

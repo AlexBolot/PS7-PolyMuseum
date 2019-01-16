@@ -15,8 +15,10 @@ class _FrontViewState extends State<FrontView> {
   @override
   void initState() {
     super.initState();
-
-    ColorUtils.changeColorsOf(context);
+   /* Firestore.instance.collection('appearance').document('current').get().then((appearance) {
+      ColorChanger.of(context)?.color =
+          Color.fromARGB(0xFF, appearance['color_red'], appearance['color_green'], appearance['color_blue']);
+    }); */
   }
 
   @override
@@ -67,12 +69,3 @@ class _FrontViewState extends State<FrontView> {
 
   moveTo(String pageName) => Navigator.of(context).pushNamed(pageName);
 }
-
-class ColorUtils extends _FrontViewState {
-  static void changeColorsOf(context) {
-    Firestore.instance.collection('Musées/NiceSport/plugins/ChangerCouleurs/config').document('current').get().then((appearance) {
-        ColorChanger.of(context)?.color = Color.fromARGB(0xFF, appearance['color_red'], appearance['color_green'], appearance['color_blue']);
-    });
-  }
-}
-

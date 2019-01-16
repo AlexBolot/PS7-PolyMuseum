@@ -60,14 +60,10 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    Firestore.instance
-        .collection('/Musées/NiceSport/plugins/ChangerCouleurs/config')
-        .document('current')
-        .get()
-        .then((colors) {
+  /*  Firestore.instance.collection('appearance').document('current').get().then((appearance) {
       ColorChanger.of(context)?.color =
-          Color.fromARGB(0xFF, colors['color_red'], colors['color_green'], colors['color_blue']);
-    });
+          Color.fromARGB(0xFF, appearance['color_red'], appearance['color_green'], appearance['color_blue']);
+    });*/
   }
 
   @override
