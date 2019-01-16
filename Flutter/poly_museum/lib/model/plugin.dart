@@ -11,7 +11,7 @@ class Plugin {
 
   Plugin.fromSnapshot(DocumentSnapshot snap) {
     this.qualifiedName = snap.data['qualifiedName'];
-    this.downloadUrl = snap.data['downloadURL'];
+    this.downloadUrl = snap.data['downloadUrl'];
     this.pluginName = snap.data['pluginName'];
     this.type = snap.data['type'];
   }

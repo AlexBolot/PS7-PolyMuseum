@@ -20,9 +20,7 @@ class ColoredWidgetState extends State<ColoredWidget> {
   }
 
   set color(newColor) {
-    if (newColor != _color) {
-      setState(() => _color = newColor);
-    }
+    setState(() => _color = newColor);
   }
 
   @override
@@ -58,5 +56,32 @@ class ColorChanger extends InheritedWidget {
   @override
   bool updateShouldNotify(ColorChanger oldWidget) {
     return oldWidget.theme == theme;
+  }
+}
+
+//----------------------------------------------------------------//
+
+class AppBuilder extends StatefulWidget {
+  final Function(BuildContext) builder;
+  final AppBuilderState state = AppBuilderState();
+
+  AppBuilder({@required this.builder});
+
+  @override
+  AppBuilderState createState() => state;
+
+  static AppBuilderState of(BuildContext context) {
+    return context.ancestorStateOfType(const TypeMatcher<AppBuilderState>());
+  }
+}
+
+class AppBuilderState extends State<AppBuilder> {
+  @override
+  Widget build(BuildContext context) {
+    return widget.builder(context);
+  }
+
+  void rebuild() {
+    setState(() {});
   }
 }

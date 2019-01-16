@@ -2,23 +2,30 @@ package polytech.al.imh.polymuseum;
 
 import android.os.Bundle;
 
+import com.sdk.makers.Plugin.PluginType;
 import com.sdk.makers.ThemeExtensionPoint;
 import com.sdk.makers.ThemePlugin;
 
+import org.json.JSONObject;
+
 import java.io.File;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import dalvik.system.DexClassLoader;
 import io.flutter.app.FlutterActivity;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugins.GeneratedPluginRegistrant;
 
-import static com.sdk.makers.Plugin.PluginType;
+import static com.sdk.makers.Plugin.PluginType.THEME_PLUGIN;
+
 
 @SuppressWarnings("ConstantConditions")
 public class MainActivity extends FlutterActivity {
     private static final String PLUGIN_CHANNEL = "channel:polytech.al.imh/plugin";
     private static ThemeExtensionPoint themeExtensionPoint = new ThemeExtensionPoint();
+    private static Map<PluginType, JSONObject> configs = new HashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,6 +35,20 @@ public class MainActivity extends FlutterActivity {
         new MethodChannel(this.getFlutterView(), PLUGIN_CHANNEL).setMethodCallHandler((methodCall, result) -> {
 
             switch (methodCall.method) {
+
+                case "addConfigs":
+
+                    Map<String, Map<String, Object>> arguments = (Map<String, Map<String, Object>>) methodCall.arguments;
+
+                    for (Map.Entry<String, Map<String, Object>> entry : arguments.entrySet()) {
+                        configs.put(PluginType.valueOf(entry.getKey()), new JSONObject(entry.getValue()));
+                    }
+
+                    themeExtensionPoint.addConfig(THEME_PLUGIN, configs.get(THEME_PLUGIN));
+
+                    result.success(null);
+
+                    //-----------------------------------------------------------------------//
 
                 case "loadPlugins":
 

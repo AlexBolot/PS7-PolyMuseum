@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:poly_museum/global.dart';
 import 'package:poly_museum/object_research_game_view.dart';
 import 'package:poly_museum/front_view.dart';
 import 'package:poly_museum/game_guide_view.dart';
@@ -14,24 +15,33 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Color defaultColor = Colors.blue;
-
     GroupService().streamGroups();
 
-    PluginService().streamPluginsData(() => PluginService.initPlugins());
+    PluginService().streamPluginsData().then((value) async {
+     await PluginService.initPlugins();
+     await PluginService.processThemePlugins();
+    });
 
-    return  MaterialApp(
-        title: 'PolyMuseum',
-        theme: ThemeData(primaryColor: defaultColor),
-        home: ColoredWidget(child :FrontView(title: 'PolyMuseum Menu'),defaultColor : defaultColor),
-        routes: {
-          '/FrontView': (context) => ColoredWidget(child :FrontView(title: 'PolyMuseum Menu'),defaultColor : defaultColor),
-          '/GuideView': (context) => ColoredWidget(child :GuideView(title: 'PolyMuseum Menu'),defaultColor : defaultColor),
-          '/MyHomePage': (context) => ColoredWidget(child :MyHomePage(title: 'PolyMuseum Menu'),defaultColor : defaultColor),
-          '/VisitorView': (context) => ColoredWidget(child : ObjectResearchGameView(),  defaultColor : defaultColor),
-        '/GameGuideView': (context) => ColoredWidget(child : GameGuideView(title: "Jeu de recherche d'objets"),  defaultColor : defaultColor),
+    appBuilder = AppBuilder(
+      builder: (context) {
+        print('-- build');
+
+        return MaterialApp(
+          title: 'PolyMuseum',
+          theme: globalTheme,
+          home: FrontView(title: 'PolyMuseum Menu'),
+          routes: {
+            '/FrontView': (context) => FrontView(title: 'PolyMuseum Menu'),
+            '/GuideView': (context) => GuideView(title: 'PolyMuseum Menu'),
+            '/MyHomePage': (context) => MyHomePage(title: 'PolyMuseum Menu'),
+            '/VisitorView': (context) => ObjectResearchGameView(),
+            '/GameGuideView': (context) => GameGuideView(title: "Jeu de recherche d'objets"),
+          },
+        );
       },
     );
+
+    return appBuilder;
   }
 }
 
@@ -50,8 +60,12 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    Firestore.instance.collection('/Musées/NiceSport/plugins/ChangerCouleurs/config').document('current').get().then((colors) {
-        ColorChanger.of(context)?.color =
+    Firestore.instance
+        .collection('/Musées/NiceSport/plugins/ChangerCouleurs/config')
+        .document('current')
+        .get()
+        .then((colors) {
+      ColorChanger.of(context)?.color =
           Color.fromARGB(0xFF, colors['color_red'], colors['color_green'], colors['color_blue']);
     });
   }

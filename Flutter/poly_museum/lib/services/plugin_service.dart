@@ -4,24 +4,60 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:poly_museum/global.dart';
 import 'package:poly_museum/model/plugin.dart';
 import 'package:path_provider/path_provider.dart';
 
 class PluginService {
+  static const MethodChannel _pluginChannel = const MethodChannel('channel:polytech.al.imh/plugin');
   static final Firestore _firestore = Firestore.instance;
   static final HttpClient httpClient = HttpClient();
   static List<Plugin> plugins = List();
+  static Map<String, Map<String, dynamic>> configs = {};
 
-  streamPluginsData(VoidCallback callback) async {
+  static DocumentReference configRef;
+
+  Future streamConfig() async {
+    configRef.snapshots().listen((snap) async {
+      DocumentSnapshot config = await configRef.get();
+
+      Map<String, dynamic> configMap = {};
+
+      for (String key in config.data.keys) {
+        configMap.putIfAbsent(key, () => config.data[key]);
+      }
+
+      configs.putIfAbsent("THEME_PLUGIN", () => configMap);
+
+      await _pluginChannel.invokeMethod('addConfigs', configs);
+      await processThemePlugins();
+    });
+  }
+
+  Future streamPluginsData() async {
     QuerySnapshot querySnapshot;
-    querySnapshot = await _firestore.collection("Musées").document("NiceSport").collection("plugins2").getDocuments();
+    querySnapshot = await _firestore.collection("Musées").document("NiceSport").collection("plugins").getDocuments();
 
     for (DocumentSnapshot doc in querySnapshot.documents) {
-      DocumentSnapshot ref = await doc.data["ref"].get();
-      plugins.add(Plugin.fromSnapshot(ref));
-    }
+      // Getting plugin file
 
-    callback();
+      DocumentSnapshot ref = await doc.data["ref"].get();
+      var plugin = Plugin.fromSnapshot(ref);
+      plugins.add(plugin);
+
+      // Getting plugin config
+
+      configRef = doc.reference.collection('config').document('current');
+      DocumentSnapshot config = await configRef.get();
+
+      Map<String, dynamic> configMap = {};
+
+      for (String key in config.data.keys) {
+        configMap.putIfAbsent(key, () => config.data[key]);
+      }
+
+      configs.putIfAbsent(plugin.type, () => configMap);
+    }
   }
 
   static Future<File> downloadFile(String url, String filename) async {
@@ -30,10 +66,6 @@ class PluginService {
     var bytes = await consolidateHttpClientResponseBytes(response);
     String dir = (await getTemporaryDirectory()).path;
     File file = new File('$dir/$filename');
-
-    File file2 = new File('$dir/test.json');
-
-    await file2.writeAsString('{"test" : []}');
     await file.writeAsBytes(bytes);
     return file;
   }
@@ -44,8 +76,6 @@ class PluginService {
       plugin.fullLocalPath = file.path;
     }
 
-    final channel = const MethodChannel('channel:polytech.al.imh/plugin');
-
     Map<String, List<String>> map = {
       'paths': plugins.map((p) => p.fullLocalPath).toList(),
       'types': plugins.map((p) => p.type).toList(),
@@ -53,12 +83,30 @@ class PluginService {
       'pluginNames': plugins.map((p) => p.type).toList(),
     };
 
-    await channel.invokeMethod('loadPlugins', map);
+    await _pluginChannel.invokeMethod('addConfigs', configs);
 
-    var res = await channel.invokeMethod('processThemePlugins');
-
-    print(res);
+    await _pluginChannel.invokeMethod('loadPlugins', map);
   }
 
+  static processThemePlugins() async {
+    Map<dynamic, dynamic> res = await _pluginChannel.invokeMethod('processThemePlugins');
 
+    int primary = res['getPrimaryColor()'];
+    int secondary = res['getSecondaryColor()'];
+    int background = res['getBackground()'];
+    bool darkTheme = res['isDarkTheme()'];
+
+    globalTheme = (darkTheme ?? false) ? ThemeData.dark() : ThemeData.light();
+
+    if (res.containsKey('getPrimaryColor()'))
+      globalTheme = globalTheme.copyWith(primaryColor: Color(primary).withOpacity(1.0));
+
+    if (res.containsKey('getSecondaryColor()'))
+      globalTheme = globalTheme.copyWith(accentColor: Color(secondary).withOpacity(1.0));
+
+    if (res.containsKey('getBackground()'))
+      globalTheme = globalTheme.copyWith(backgroundColor: Color(background).withOpacity(1.0));
+
+    appBuilder.state.rebuild();
+  }
 }
