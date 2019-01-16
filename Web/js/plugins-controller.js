@@ -134,6 +134,8 @@ PluginsController.prototype.updatePluginState = function(plugin, value) {
 }
 
 PluginsController.prototype.uploadConfig = function(formData, musee, plugin) {
+    var self = this;
+    
     $.ajax({
 	type : 'POST',
 	url : '/ajax/upload?musee=' + musee + '&plugin=' + plugin,
@@ -150,8 +152,9 @@ PluginsController.prototype.uploadConfig = function(formData, musee, plugin) {
     });
 }
 
-$(document).ready(function() {
-    $('ul#plugins-list').each(function() {
-	new PluginsController($(this)).init();
-    });
-});
+PluginsController.prototype.reloadPlugins = function() {
+    this.plugins = [];
+    this.block.empty();
+    
+    this.fetchData();
+}
