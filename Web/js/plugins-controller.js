@@ -92,7 +92,6 @@ PluginsController.prototype.createListElement = function(plugin) {
 	    .attr('class', 'load-config-file')
 	    .attr('type', 'file')
 	    .attr('name', 'config-file');
-	
 
 	var submitBtn = $('<button>')
 	    .attr('type', 'button')
@@ -100,7 +99,8 @@ PluginsController.prototype.createListElement = function(plugin) {
 	    .click(function() {
 		console.log($(this).closest('form')[0]);
 		var formData = new FormData($(this).closest('form')[0]);
-		self.uploadConfig(formData);
+		var musee = $('meta[name=musee]').attr('content');
+		self.uploadConfig(formData, musee, plugin.id);
 	    });
 
 	
@@ -125,10 +125,10 @@ PluginsController.prototype.updatePluginState = function(pluginId, value) {
 	.set({"activated" : value });
 }
 
-PluginsController.prototype.uploadConfig = function(formData) {
+PluginsController.prototype.uploadConfig = function(formData, musee, plugin) {
     $.ajax({
 	type : 'POST',
-	url : '/ajax/upload',
+	url : '/ajax/upload?musee=' + musee + '&plugin=' + plugin,
 	data : formData,
 	contentType : false,
 	cache : false,

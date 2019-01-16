@@ -44,11 +44,11 @@ def upload_recurs(tree, target):
         else:
             write_data(key, value, target)
         
-def upload_config(filepath):
+def upload_config(filepath, musee, plugin):
     with open(filepath) as f:
         data = json.load(f)
-    
-    target = data['target']
+
+    target = "/Musées/" + musee + "/plugins/" + plugin + '/config/current';
     
     upload_recurs(data['data'], target)
 
@@ -74,7 +74,9 @@ app = Flask(__name__)
 def upload_config_route():
     f = request.files['config-file']
     f.save('./uploads/' + f.filename)
-    upload_config('./uploads/' + f.filename)    
+    musee = request.args['musee']
+    plugin = request.args['plugin']
+    upload_config('./uploads/' + f.filename, musee, plugin)
 
     return 'Sucess', status.HTTP_200_OK
 
