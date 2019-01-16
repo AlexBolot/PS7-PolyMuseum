@@ -46,6 +46,7 @@ Installation sur Archlinux/Manjao
 - Ajouter un lien symbolique dans le répertoire `public_html` vers le répertoire Web du projet
 
  `$ cd ~/public_html`
+ 
  `$ ln -s <Chemin vers le projet>/Web PS7-web/ `
 
 - Démarrez le serveur
@@ -62,14 +63,19 @@ Vous pouvez maintenant accéder à l'application Web à travers l'adresse `127.0
 - Installez les paquets suivants :
 
  `$ pip install --user firebase_admoin`
+ 
  `$ pip install --user flask`
+ 
  `$ pip install --user flask_api`
 
 - Generez un certificat JSON à travers l'interface polymuseum et placer son contenu dans le répertoire `Web/api/config.py` :
 
  `$ cd api`
+ 
  `$ echo certificate_path = \' > config.py`
+ 
  `$ cat <CHEMIN VERS LE CERTIFICAT> >> config.py`
+ 
  `$ echo \' >> config.py`
 
 - Démarrez le serveur
