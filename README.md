@@ -37,11 +37,16 @@ ProxyPassReverse /ajax http://127.0.0.1:5000
 
   $ mkdir public_html
 
-- Autorizez apache à lire son contenu :
+- Autorisez apache à lire son contenu :
 
   $ chmod o+x
 
   $ chmod o+x ~/public_html
+
+- Ajouter un lien symbolique dans le répertoire public_html vers le répertoire Web du projet
+
+  $ cd ~/public_html
+  $ ln -s <Chemin vers le projet>/Web PS7-web/ 
 
 - Démarrez le serveur
 
