@@ -1,1 +1,15 @@
-.idea/
+# Ignore Gradle project-specific cache directory
+.gradle
+
+# Ignore Gradle build output directory
+build
+
+.idea
+
+PS7.iml
+gradle/
+/Web/api/config.py
+/.markdown-preview.html
+web/api/__pycache/
+/Web/api/__pycache__
+/Web/api/uploads/config.json
