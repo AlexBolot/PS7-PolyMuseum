@@ -31,7 +31,7 @@ ProxyPass /ajax http://127.0.0.1:5000
 
 ProxyPassReverse /ajax http://127.0.0.1:5000
 
-</VirtualHost>
+<\/VirtualHost>
 
 - Dabs votre répertoire personnel, créez un répertoire public_html
 
