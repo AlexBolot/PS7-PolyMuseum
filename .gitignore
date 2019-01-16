@@ -12,3 +12,4 @@ gradle/
 /.markdown-preview.html
 web/api/__pycache/
 /Web/api/__pycache__
+/Web/api/uploads/config.json

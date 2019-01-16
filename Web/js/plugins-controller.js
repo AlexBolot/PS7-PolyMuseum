@@ -39,9 +39,9 @@ PluginsController.prototype.fetchData = function() {
 		.then(function(querySnapshot) {
 		    querySnapshot.forEach(function(document) {
 			var data = document.data()
-			var index = self.plugins[data.ref].index;
 
 			if (data.ref in self.plugins && data.activated) {
+			    var index = self.plugins[data.ref].index;
 			    self.plugins[data.ref].activated = true;
 			    self.block
 				.find('input#plugin-' + index + '-cb')

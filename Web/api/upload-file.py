@@ -96,4 +96,4 @@ def upload_plugin_route():
     return 'Sucess', status.HTTP_200_OK
 
 if __name__ == '__main__':
-    app.run()
+    app.run(host='0.0.0.0')
