@@ -13,9 +13,9 @@ class GroupService {
   /// Method that allow to obtain a list of groups based on the database
   void streamGroups() {
     _groupsStream = museumReference.collection("GroupesVisite").snapshots().listen(
-      (querySnapshot) {
-        groups = querySnapshot.documents.map((snap) => Group.fromMap(snap)).toList();
-      }
+            (querySnapshot) {
+          groups = querySnapshot.documents.map((snap) => Group.fromMap(snap)).toList();
+        }
     );
   }
 
@@ -27,7 +27,7 @@ class GroupService {
   ///param code : the code used to recognize the group (!= from id)
   ///return a Future.
   Future createGroup(int id, String code) async {
-   await museumReference
+    await museumReference
         .collection("GroupesVisite")
         .document('$id')
         .setData({'groupeCode': code, 'isFinished': false, 'isStarted': false});
