@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:poly_museum/global.dart';
 import 'package:poly_museum/model/objects.dart';
+import 'package:poly_museum/test_class.dart';
 
 class ObjectResearchGameService {
   StreamSubscription<QuerySnapshot> _objectsDiscoveredStream;
@@ -101,6 +102,8 @@ class ObjectResearchGameService {
     getTeamNumber(userGroup);
   }
 
+
+
   ///
   /// Updates the database when a team have found an object in the game
   /// It adds the teams number in the list of teams that have found the correct object
@@ -177,4 +180,22 @@ class ObjectResearchGameService {
   void disposeGameStatusStream() => _gameStatusStream?.cancel();
 
   void disposeTeamsStream() => _teamsStream?.cancel();
+
+  testObjectGameService(){
+    TestCase(
+      body: () {
+        changeMuseumTarget("NiceTest");
+        print("bodyEntered");
+        TestCase.assertTrue(objectsGame.length==0);
+        updateResearchGameDescriptions(()async{
+          TestCase.assertTrue(objectsGame.length==2);
+          changeMuseumTarget("NiceSport");
+          disposeGameStatusStream();
+        },globalUserGroup);
+
+      },after:(){
+      print("OBJECT GAME SERVICE success");
+    },
+    ).start();
+  }
 }
