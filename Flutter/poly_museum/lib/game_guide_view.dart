@@ -89,6 +89,7 @@ class _GameGuideViewState extends State<GameGuideView> {
     return list;
   }
 
+  ///Widget that display the winning team
   Widget displayEndGame() {
     if (gameService.winningTeam != -1) {
       String winningTeam = gameService.winningTeam.toString();
@@ -109,8 +110,7 @@ class _GameGuideViewState extends State<GameGuideView> {
     }
   }
 
-  //Pour les objets : les récupérer tous, avec leur param trouvé par, et si une des équipes est dans tous les trouvé par on le signale au guide
-
+  ///Method to display any message
   void displayMessage(String message) {
     showDialog(
       context: context,
