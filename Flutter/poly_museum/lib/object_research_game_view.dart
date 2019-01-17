@@ -27,7 +27,7 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
   @override
   void initState() {
     super.initState();
-    gameService.updateResearchGameDescriptions(_refresh, userGroup, userTeam);
+    gameService.updateResearchGameDescriptions(_refresh, userGroup);
     gameService.updateGameStatus(_refresh, userGroup);
   }
 
