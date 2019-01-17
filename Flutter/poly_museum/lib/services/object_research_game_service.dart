@@ -23,6 +23,10 @@ class ObjectResearchGameService {
 
   bool get gameStatusEnd => _gameStatusEnd ?? false;
 
+  ///
+  /// This method streams the values from game status, whether it is began or finished
+  /// (isStarted and isFinished in the Database) corresponding to the right userGroup
+  ///
   void updateGameStatus(VoidCallback callback, userGroup) {
     _gameStatusStream = museumReference
         .collection("GroupesVisite")
@@ -37,6 +41,9 @@ class ObjectResearchGameService {
     );
   }
 
+  ///
+  /// Indicates a game has begun in the corresponding userGroup
+  ///
   void startGame(VoidCallback callback, userGroup) {
     museumReference
         .collection("GroupesVisite")
@@ -47,18 +54,23 @@ class ObjectResearchGameService {
     });
   }
 
+  ///
+  /// Indicates a game has begun in the corresponding userGroup
+  ///
   void endGame(VoidCallback callback, userGroup) {
-    museumReference
-        .collection("GroupesVisite")
-        .document("groupe$userGroup")
-        .updateData({
+    museumReference.collection("GroupesVisite").document("groupe$userGroup").updateData({
       'isFinished': true,
       'isStarted': false,
     });
   }
 
-  void updateResearchGameDescriptions(
-      VoidCallback callback, userGroup, userTeam) {
+
+  ///
+  /// Streams the objects corresponding to the object Research Game.
+  /// When a team has found an object in the game it's updated in the @objectsGame list
+  /// The stream is set in function of the userGroup
+  ///
+  void updateResearchGameDescriptions(VoidCallback callback, userGroup) {
     _objectsDiscoveredStream = museumReference
         .collection("GroupesVisite")
         .document("groupe$userGroup")
@@ -73,11 +85,7 @@ class ObjectResearchGameService {
             DocumentSnapshot ref = await value["descriptionRef"].get();
             List teamFoundObject = value['trouveParEquipes'];
             objectsGame.add(new Objects(
-                value["descriptionRef"],
-                ref.data["description"],
-                ref.data["barCode"],
-                teamFoundObject,
-                key));
+                value["descriptionRef"], ref.data["description"], ref.data["barCode"], teamFoundObject, key));
           }
 
           for (String s in doc.data.keys) {
@@ -93,19 +101,22 @@ class ObjectResearchGameService {
     getTeamNumber(userGroup);
   }
 
-  void teamFoundObject(
-      userGroup, keyObject, description, List teamFoundObject) {
+  ///
+  /// Updates the database when a team have found an object in the game
+  /// It adds the teams number in the list of teams that have found the correct object
+  ///
+  void teamFoundObject(userGroup, keyObject, description, List teamFoundObject) {
     museumReference
         .collection("GroupesVisite")
         .document("groupe$userGroup")
         .collection("JeuRechercheObjet")
         .document("Objets")
-        .updateData({
-      'descriptionRef': description,
-      'trouveParEquipes': teamFoundObject
-    });
+        .updateData({'descriptionRef': description, 'trouveParEquipes': teamFoundObject});
   }
 
+  ///
+  /// Updates the number of teams present in the game
+  ///
   void getTeamNumber(userGroup) {
     StreamSubscription<DocumentSnapshot> teams;
     teams = museumReference
@@ -138,6 +149,9 @@ class ObjectResearchGameService {
     return -1;
   }
 
+  ///
+  /// Add in the list teamsGame all the teams formed for a game.
+  ///
   void getTeams(VoidCallback callback, userGroup) {
     _teamsStream = museumReference
         .collection("GroupesVisite")
