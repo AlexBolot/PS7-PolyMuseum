@@ -16,6 +16,9 @@ class PluginService {
   DocumentReference _configRef;
   Map<String, Map<String, dynamic>> _configs = {};
 
+  ///
+  ///  Adds for each type of plugin the configurations for each plugins corresponding to the type
+  ///
   Future streamConfig() async {
     _configRef.snapshots().listen((snap) async {
       DocumentSnapshot config = await _configRef.get();
@@ -33,6 +36,9 @@ class PluginService {
     });
   }
 
+  ///
+  /// Gets from FireBase database all the plugins activated for the corresponding museum
+  ///
   Future streamPluginsData() async {
     QuerySnapshot querySnapshot;
     querySnapshot = await museumReference.collection("plugins").getDocuments();
@@ -60,6 +66,10 @@ class PluginService {
     }
   }
 
+  ///
+  /// Downloads a file with the given URL, putting the filename on this file to identify it
+  /// Used for downloading the plugins for the application
+  ///
   Future<File> downloadFile(String url, String filename) async {
     var request = await _httpClient.getUrl(Uri.parse(url));
     var response = await request.close();
@@ -70,6 +80,9 @@ class PluginService {
     return file;
   }
 
+  ///
+  /// Loads the activated plugins in the application
+  ///
   initPlugins() async {
     for (Plugin plugin in _plugins) {
       File file = await downloadFile(plugin.downloadUrl, plugin.pluginName);
@@ -88,6 +101,9 @@ class PluginService {
     await _pluginChannel.invokeMethod('loadPlugins', map);
   }
 
+  ///
+  /// Invokes the methods from the plugins precedently loaded plugins in the application
+  ///
   processThemePlugins() async {
     Map<dynamic, dynamic> res = await _pluginChannel.invokeMethod('processThemePlugins');
 

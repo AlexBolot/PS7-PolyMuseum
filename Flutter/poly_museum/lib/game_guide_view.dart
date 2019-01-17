@@ -24,7 +24,7 @@ class _GameGuideViewState extends State<GameGuideView> {
   void initState() {
     super.initState();
     gameService.getTeams(_refresh, currentGroupID);
-    gameService.updateResearchGameDescriptions(_refresh, globalUserGroup, globalUserTeam);
+    gameService.updateResearchGameDescriptions(_refresh, globalUserGroup);
   }
 
   VoidCallback _refresh() {
