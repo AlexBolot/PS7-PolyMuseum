@@ -73,7 +73,7 @@ class ObjectResearchGameService {
       objectsGame = List();
       for (DocumentSnapshot doc in data.documents) {
         if (doc.data.keys.contains("objet1")) {
-          Future iterateMapEntry(key, value) async {
+            Future iterateMapEntry(key, value) async {
             doc.data[key] = value;
             DocumentSnapshot ref = await value["descriptionRef"].get();
             List teamFoundObject = value['trouveParEquipes'];
@@ -104,7 +104,10 @@ class ObjectResearchGameService {
         .document("groupe$userGroup")
         .collection("JeuRechercheObjet")
         .document("Objets")
-        .updateData({'descriptionRef': description, 'trouveParEquipes': teamFoundObject});
+        .updateData({keyObject: {
+          'descriptionRef': description,
+          'trouveParEquipes': teamFoundObject
+        }});
   }
 
   ///
