@@ -1,13 +1,19 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Plugin {
+  String identifier;
   String qualifiedName;
   String downloadUrl;
   String type;
   String pluginName;
   String fullLocalPath;
-
-  Plugin(this.qualifiedName, this.downloadUrl, this.type, this.pluginName);
+  bool config = false;
+  String libelle;
+  String museum = null;
+  
+  Plugin(this.qualifiedName, this.downloadUrl, this.type, this.pluginName, this.config, this.libelle, [ this.museum ]) {
+    this.identifier = libelle;
+  }
 
   Plugin.fromSnapshot(DocumentSnapshot snap) {
     this.qualifiedName = snap.data['qualifiedName'];
@@ -23,6 +29,14 @@ class Plugin {
       'pluginName': pluginName,
       'type': type,
     };
+  }
+
+  bool isActivatedInMuseum(String museum) {
+    return this.museum == museum;
+  }
+
+  String getIdentifier() {
+    return identifier;
   }
 
   @override
