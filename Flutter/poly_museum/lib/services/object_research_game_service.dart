@@ -108,6 +108,8 @@ class ObjectResearchGameService {
     getTeamNumber(userGroup, () {});
   }
 
+
+
   ///
   /// Updates the database when a team have found an object in the game
   /// It adds the teams number in the list of teams that have found the correct object
@@ -190,6 +192,24 @@ class ObjectResearchGameService {
 
   void disposeTeamsStream() => _teamsStream?.cancel();
 
+  testObjectGameService(){
+    TestCase(
+      body: () {
+        changeMuseumTarget("NiceTest");
+        print("bodyEntered");
+        TestCase.assertTrue(objectsGame.length==0);
+        updateResearchGameDescriptions(()async{
+          TestCase.assertTrue(objectsGame.length==2);
+          changeMuseumTarget("NiceSport");
+          disposeGameStatusStream();
+        },globalUserGroup);
+
+      },after:(){
+      print("OBJECT GAME SERVICE success");
+    },
+    ).start();
+  }
+
   loadTest() {
     TestCase(body: () async {
       getTeamNumber("1", () {
@@ -204,15 +224,6 @@ class ObjectResearchGameService {
       }, "1");
     }).start();
 
-    /*TestCase(body: () async {
-      TestCase.assertSame(checkEndGame(), -1);
-      //Objects object = new Objects(new, , qrCode, discoveredByTeams, dataBaseName)
-      teamFoundObject(1, 1, description, teamFoundObject)
-    }).start();*/
-
-    /*TestCase(body: () async {
-      updateResearchGameDescriptions(callback, userGroup);
-    });*/
 
     TestCase(body: () async {
       TestCase.assertFalse(gameStatusEnd);

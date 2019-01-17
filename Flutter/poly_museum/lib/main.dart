@@ -13,16 +13,15 @@ void main() => runApp(MyApp());
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+
     ServiceProvider.groupService.streamGroups();
-/*
-    PluginService pluginService = ServiceProvider.pluginService;
+
+    /*PluginService pluginService = ServiceProvider.pluginService;
 
     pluginService.streamPluginsData().then((value) async {
-      await pluginService.initPlugins();
-      await pluginService.processThemePlugins();
+     await pluginService.initPlugins();
+     await pluginService.processThemePlugins();
     });*/
-    changeMuseumTarget("NiceTest");
-    ServiceProvider.gameService.loadTest();
 
     appBuilder = AppBuilder(
       builder: (context) {
