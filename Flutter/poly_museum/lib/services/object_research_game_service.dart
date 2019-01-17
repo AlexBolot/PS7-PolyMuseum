@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:poly_museum/global.dart';
 import 'package:poly_museum/model/objects.dart';
+import 'package:poly_museum/test_class.dart';
 
 class ObjectResearchGameService {
   StreamSubscription<QuerySnapshot> _objectsDiscoveredStream;
@@ -33,7 +34,7 @@ class ObjectResearchGameService {
         .document("groupe$userGroup")
         .snapshots()
         .listen(
-      (groupData) {
+          (groupData) {
         _gameStatusBegin = groupData.data["isStarted"];
         _gameStatusEnd = groupData.data["isFinished"];
         callback();
@@ -55,15 +56,17 @@ class ObjectResearchGameService {
   }
 
   ///
-  /// Indicates a game has begun in the corresponding userGroup
+  /// Indicates a game is finished in the corresponding userGroup
   ///
   void endGame(VoidCallback callback, userGroup) {
-    museumReference.collection("GroupesVisite").document("groupe$userGroup").updateData({
+    museumReference
+        .collection("GroupesVisite")
+        .document("groupe$userGroup")
+        .updateData({
       'isFinished': true,
       'isStarted': false,
     });
   }
-
 
   ///
   /// Streams the objects corresponding to the object Research Game.
@@ -85,7 +88,11 @@ class ObjectResearchGameService {
             DocumentSnapshot ref = await value["descriptionRef"].get();
             List teamFoundObject = value['trouveParEquipes'];
             objectsGame.add(new Objects(
-                value["descriptionRef"], ref.data["description"], ref.data["barCode"], teamFoundObject, key));
+                value["descriptionRef"],
+                ref.data["description"],
+                ref.data["barCode"],
+                teamFoundObject,
+                key));
           }
 
           for (String s in doc.data.keys) {
@@ -98,26 +105,30 @@ class ObjectResearchGameService {
       }
       callback();
     });
-    getTeamNumber(userGroup);
+    getTeamNumber(userGroup, () {});
   }
 
   ///
   /// Updates the database when a team have found an object in the game
   /// It adds the teams number in the list of teams that have found the correct object
   ///
-  void teamFoundObject(userGroup, keyObject, description, List teamFoundObject) {
+  void teamFoundObject(userGroup, keyObject, description,
+      List teamFoundObject) {
     museumReference
         .collection("GroupesVisite")
         .document("groupe$userGroup")
         .collection("JeuRechercheObjet")
         .document("Objets")
-        .updateData({'descriptionRef': description, 'trouveParEquipes': teamFoundObject});
+        .updateData({
+      'descriptionRef': description,
+      'trouveParEquipes': teamFoundObject
+    });
   }
 
   ///
   /// Updates the number of teams present in the game
   ///
-  void getTeamNumber(userGroup) {
+  void getTeamNumber(userGroup, VoidCallback callback) {
     StreamSubscription<DocumentSnapshot> teams;
     teams = museumReference
         .collection("GroupesVisite")
@@ -127,6 +138,7 @@ class ObjectResearchGameService {
         .snapshots()
         .listen((snap) {
       numberTeams = snap.data.length;
+      callback();
     });
   }
 
@@ -177,4 +189,37 @@ class ObjectResearchGameService {
   void disposeGameStatusStream() => _gameStatusStream?.cancel();
 
   void disposeTeamsStream() => _teamsStream?.cancel();
+
+  loadTest() {
+    TestCase(body: () async {
+      getTeamNumber("1", () {
+        TestCase.assertSame(numberTeams, 3);
+      });
+    }).start();
+
+    TestCase(body: () async {
+      TestCase.assertTrue(teamsGame.isEmpty);
+      getTeams(() {
+        TestCase.assertFalse(teamsGame.isEmpty);
+      }, "1");
+    }).start();
+
+    /*TestCase(body: () async {
+      TestCase.assertSame(checkEndGame(), -1);
+      //Objects object = new Objects(new, , qrCode, discoveredByTeams, dataBaseName)
+      teamFoundObject(1, 1, description, teamFoundObject)
+    }).start();*/
+
+    /*TestCase(body: () async {
+      updateResearchGameDescriptions(callback, userGroup);
+    });*/
+
+    TestCase(body: () async {
+      TestCase.assertFalse(gameStatusEnd);
+      TestCase.assertFalse(gameStatusBegin);
+      startGame(() {
+        TestCase.assertTrue(gameStatusBegin);
+      }, 1);
+    });
+  }
 }
