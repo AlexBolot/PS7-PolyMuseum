@@ -63,6 +63,7 @@ class _GuideViewState extends State<GuideView> {
     );
   }
 
+  ///Generate a randomCode
   String _randomCode() {
     return Uuid().v1().toString().substring(0, 5).toUpperCase();
   }
@@ -89,6 +90,7 @@ class _GuideViewState extends State<GuideView> {
     );
   }
 
+  ///Method to move to another view of the app
   moveTo(String pageName) => Navigator.of(context).pushNamed(pageName);
 
   void displayCode(String code) {

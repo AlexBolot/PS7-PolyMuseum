@@ -1,19 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:poly_museum/global.dart';
-import 'package:poly_museum/object_research_game_view.dart';
 import 'package:poly_museum/front_view.dart';
 import 'package:poly_museum/game_guide_view.dart';
+import 'package:poly_museum/global.dart';
 import 'package:poly_museum/guide_view.dart';
-import 'package:poly_museum/services/group_service.dart';
+import 'package:poly_museum/object_research_game_view.dart';
 import 'package:poly_museum/services/plugin_service.dart';
 import 'package:poly_museum/services/service_provider.dart';
+
 import 'ColorChanger.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
-
   @override
   Widget build(BuildContext context) {
     ServiceProvider.groupService.streamGroups();
@@ -21,8 +19,8 @@ class MyApp extends StatelessWidget {
     PluginService pluginService = ServiceProvider.pluginService;
 
     pluginService.streamPluginsData().then((value) async {
-     await pluginService.initPlugins();
-     await pluginService.processThemePlugins();
+      await pluginService.initPlugins();
+      await pluginService.processThemePlugins();
     });
 
     appBuilder = AppBuilder(
@@ -36,7 +34,8 @@ class MyApp extends StatelessWidget {
             '/GuideView': (context) => GuideView(title: 'PolyMuseum Menu'),
             '/MyHomePage': (context) => MyHomePage(title: 'PolyMuseum Menu'),
             '/VisitorView': (context) => ObjectResearchGameView(),
-            '/GameGuideView': (context) => GameGuideView(title: "Jeu de recherche d'objets"),
+            '/GameGuideView': (context) =>
+                GameGuideView(title: "Jeu de recherche d'objets"),
           },
         );
       },
@@ -76,7 +75,9 @@ class _MyHomePageState extends State<MyHomePage> {
                         leading: Icon(Icons.account_balance),
                         title: Text('Bienvenue au $nomMusee'),
                       ),
-                      Image(image: NetworkImage("http://www.museedusport.fr/sites/default/files/logo.png"))
+                      Image(
+                          image: NetworkImage(
+                              "http://www.museedusport.fr/sites/default/files/logo.png"))
                     ],
                   ),
                 ],
@@ -122,7 +123,9 @@ class _MyHomePageState extends State<MyHomePage> {
                       style: TextStyle(fontSize: 18.0),
                     ),
                     FlatButton(
-                      child: Text('Rejoindre', style: TextStyle(color: Colors.lightBlue.withOpacity(0.7))),
+                      child: Text('Rejoindre',
+                          style: TextStyle(
+                              color: Colors.lightBlue.withOpacity(0.7))),
                       onPressed: () => enterCode(),
                     )
                   ],
@@ -153,7 +156,8 @@ class _MyHomePageState extends State<MyHomePage> {
                     controller: nameController,
                     textCapitalization: TextCapitalization.words,
                     style: TextStyle(fontSize: 20.0, color: Colors.black),
-                    decoration: InputDecoration(hintText: 'Nom au sein du groupe'),
+                    decoration:
+                        InputDecoration(hintText: 'Nom au sein du groupe'),
                   ),
                   TextFormField(
                     controller: codeController,

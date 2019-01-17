@@ -43,12 +43,13 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
     return Scaffold(
       appBar: AppBar(title: Text('Descriptions View')),
       body: Container(
-        child: new ListView(children: getExpenseItems()),
+        child: new ListView(children: displayGameElements()),
       ),
     );
   }
 
-  getExpenseItems() {
+  ///Method to display game elements (description, winning teams etc)
+  displayGameElements() {
     if (gameService.gameStatusEnd) {
       String winningTeam = gameService.winningTeam.toString();
       Card card = addNewCard("Partie terminée");
@@ -99,6 +100,7 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
     }
   }
 
+  /// Method to scan QRCOde, called when a description is pressed.
   Future scan(Objects object) async {
     try {
       String barcode = await BarcodeScanner.scan();
@@ -135,6 +137,7 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
     });
   }
 
+  ///Method used to change the color of a description when a object is found
   chooseColor(Objects object) {
     var color = Color.fromARGB(255, 255, 255, 255);
     if (object.discoveredByTeams != null &&
