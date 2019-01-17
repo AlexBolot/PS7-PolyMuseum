@@ -1,33 +1,41 @@
 import 'package:flutter_test/flutter_test.dart';
 
 class TestCase {
+  String name;
   Future Function() setUp;
   Future Function() body;
   Future Function() after;
 
-  TestCase({this.setUp, this.body, this.after});
+  TestCase({this.name = 'Unknown test', this.setUp, this.body, this.after}) {
+    this.setUp ??= () {};
+    this.body ??= () {};
+    this.after ??= () {};
+  }
 
-  void start() async {
-    if (setUp != null) {
+  Future<String> start() async {
+    String result = '';
+    try {
       await setUp();
-    }
-
-    await body();
-
-    if (after != null) {
+      await body();
       await after();
+      result = '$name : SUCESS';
+    } catch (error) {
+      result = '$name : FAILED : $error';
     }
+
+    print(result);
+    return result;
   }
 
   static void assertSame(dynamic a, dynamic b) {
-    if (a != b) throw 'assertSame failed, values are $a and $b';
+    if (a != b) throw Exception('assertSame failed, values are $a and $b');
   }
 
   static void assertTrue(bool a) {
-    if (!a) throw 'assertTrue failed, value is $a';
+    if (!a) throw Exception('assertTrue failed, value is $a');
   }
 
   static void assertFalse(bool a) {
-    if (a) throw 'assertFalse failed, value is $a';
+    if (a) throw Exception('assertFalse failed, value is $a');
   }
 }

@@ -29,12 +29,8 @@ class ObjectResearchGameService {
   /// (isStarted and isFinished in the Database) corresponding to the right userGroup
   ///
   void updateGameStatus(VoidCallback callback, userGroup) {
-    _gameStatusStream = museumReference
-        .collection("GroupesVisite")
-        .document("groupe$userGroup")
-        .snapshots()
-        .listen(
-          (groupData) {
+    _gameStatusStream = museumReference.collection("GroupesVisite").document("groupe$userGroup").snapshots().listen(
+      (groupData) {
         _gameStatusBegin = groupData.data["isStarted"];
         _gameStatusEnd = groupData.data["isFinished"];
         callback();
@@ -46,10 +42,7 @@ class ObjectResearchGameService {
   /// Indicates a game has begun in the corresponding userGroup
   ///
   void startGame(VoidCallback callback, userGroup) {
-    museumReference
-        .collection("GroupesVisite")
-        .document("groupe$userGroup")
-        .updateData({
+    museumReference.collection("GroupesVisite").document("groupe$userGroup").updateData({
       'isFinished': false,
       'isStarted': true,
     });
@@ -59,10 +52,7 @@ class ObjectResearchGameService {
   /// Indicates a game is finished in the corresponding userGroup
   ///
   void endGame(VoidCallback callback, userGroup) {
-    museumReference
-        .collection("GroupesVisite")
-        .document("groupe$userGroup")
-        .updateData({
+    museumReference.collection("GroupesVisite").document("groupe$userGroup").updateData({
       'isFinished': true,
       'isStarted': false,
     });
@@ -88,11 +78,7 @@ class ObjectResearchGameService {
             DocumentSnapshot ref = await value["descriptionRef"].get();
             List teamFoundObject = value['trouveParEquipes'];
             objectsGame.add(new Objects(
-                value["descriptionRef"],
-                ref.data["description"],
-                ref.data["barCode"],
-                teamFoundObject,
-                key));
+                value["descriptionRef"], ref.data["description"], ref.data["barCode"], teamFoundObject, key));
           }
 
           for (String s in doc.data.keys) {
@@ -108,23 +94,17 @@ class ObjectResearchGameService {
     getTeamNumber(userGroup, () {});
   }
 
-
-
   ///
   /// Updates the database when a team have found an object in the game
   /// It adds the teams number in the list of teams that have found the correct object
   ///
-  void teamFoundObject(userGroup, keyObject, description,
-      List teamFoundObject) {
+  void teamFoundObject(userGroup, keyObject, description, List teamFoundObject) {
     museumReference
         .collection("GroupesVisite")
         .document("groupe$userGroup")
         .collection("JeuRechercheObjet")
         .document("Objets")
-        .updateData({
-      'descriptionRef': description,
-      'trouveParEquipes': teamFoundObject
-    });
+        .updateData({'descriptionRef': description, 'trouveParEquipes': teamFoundObject});
   }
 
   ///
@@ -192,45 +172,51 @@ class ObjectResearchGameService {
 
   void disposeTeamsStream() => _teamsStream?.cancel();
 
-  testObjectGameService(){
+  testGameService() {
+
+    changeMuseumTarget("NiceTest");
+
     TestCase(
+      name: "Update Game Description",
       body: () {
         changeMuseumTarget("NiceTest");
-        print("bodyEntered");
-        TestCase.assertTrue(objectsGame.length==0);
-        updateResearchGameDescriptions(()async{
-          TestCase.assertTrue(objectsGame.length==2);
+        TestCase.assertTrue(objectsGame.length == 0);
+        updateResearchGameDescriptions(() async {
+          TestCase.assertTrue(objectsGame.length == 2);
           changeMuseumTarget("NiceSport");
           disposeGameStatusStream();
-        },globalUserGroup);
-
-      },after:(){
-      print("OBJECT GAME SERVICE success");
-    },
+        }, globalUserGroup);
+      },
     ).start();
-  }
 
-  loadTest() {
-    TestCase(body: () async {
-      getTeamNumber("1", () {
-        TestCase.assertSame(numberTeams, 3);
-      });
-    }).start();
+    TestCase(
+      name: "Get Team Number",
+      body: () async {
+        getTeamNumber("1", () {
+          TestCase.assertSame(numberTeams, 3);
+        });
+      },
+    ).start();
 
-    TestCase(body: () async {
-      TestCase.assertTrue(teamsGame.isEmpty);
-      getTeams(() {
-        TestCase.assertFalse(teamsGame.isEmpty);
-      }, "1");
-    }).start();
+    TestCase(
+      name: "Get Teams",
+      body: () async {
+        TestCase.assertTrue(teamsGame.isEmpty);
+        getTeams(() {
+          TestCase.assertFalse(teamsGame.isEmpty);
+        }, "1");
+      },
+    ).start();
 
-
-    TestCase(body: () async {
-      TestCase.assertFalse(gameStatusEnd);
-      TestCase.assertFalse(gameStatusBegin);
-      startGame(() {
-        TestCase.assertTrue(gameStatusBegin);
-      }, 1);
-    });
+    TestCase(
+      name: "Starting Game",
+      body: () async {
+        TestCase.assertFalse(gameStatusEnd);
+        TestCase.assertFalse(gameStatusBegin);
+        startGame(() {
+          TestCase.assertTrue(gameStatusBegin);
+        }, 1);
+      },
+    ).start();
   }
 }

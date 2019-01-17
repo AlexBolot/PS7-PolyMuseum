@@ -13,16 +13,13 @@ class GroupService {
 
   /// Method that allow to obtain a list of groups based on the database
   void streamGroups([callback]) {
-    _groupsStream = museumReference.collection("GroupesVisite").snapshots().listen(
-            (querySnapshot) {
-          groups = querySnapshot.documents.map((snap) => Group.fromMap(snap)).toList();
-          if(callback!=null){
-            callback();
-          }
-        }
-    );
+    _groupsStream = museumReference.collection("GroupesVisite").snapshots().listen((querySnapshot) {
+      groups = querySnapshot.documents.map((snap) => Group.fromMap(snap)).toList();
+      if (callback != null) {
+        callback();
+      }
+    });
   }
-
 
   /// Method that allow to stop listening to groupStream
   void dispose() => _groupsStream?.cancel();
@@ -55,36 +52,37 @@ class GroupService {
         .setData({'prenom': name});
   }
 
-  testGroupService(){
-    //CHECK IF WE CAN ADD A MEMBER TO A GIVEN GROUP
-    TestCase(
-        body: () {
-          changeMuseumTarget("NiceTest");
-          print("bodyEntered");
-          streamGroups(() async {
-            var sizeBefore = await museumReference
-                .collection("GroupesVisite")
-                .document("groupe1")
-                .collection('Membres')
-                .getDocuments().then((data) {
-              return (data.documents.length);
-            });
-            addMemberToGroup("coco", "123");
-            var sizeAfter = await museumReference
-                .collection("GroupesVisite")
-                .document("groupe1")
-                .collection('Membres')
-                .getDocuments().then((data) {
-              return (data.documents.length);
-            });
-            TestCase.assertTrue(sizeBefore==(sizeAfter-1));
-            changeMuseumTarget("NiceSport");
-            dispose();
-          });
-        },after: (){
-          print("TEST GROUP SERVICE Success");
-        }
+  testGroupService() {
 
+    changeMuseumTarget("NiceTest");
+
+    TestCase(
+      name: "Adding a Member to a given group",
+      body: () {
+        changeMuseumTarget("NiceTest");
+        streamGroups(() async {
+          var sizeBefore = await museumReference
+              .collection("GroupesVisite")
+              .document("groupe1")
+              .collection('Membres')
+              .getDocuments()
+              .then((data) {
+            return (data.documents.length);
+          });
+          addMemberToGroup("coco", "123");
+          var sizeAfter = await museumReference
+              .collection("GroupesVisite")
+              .document("groupe1")
+              .collection('Membres')
+              .getDocuments()
+              .then((data) {
+            return (data.documents.length);
+          });
+          TestCase.assertTrue(sizeBefore == (sizeAfter - 1));
+          changeMuseumTarget("NiceSport");
+          dispose();
+        });
+      },
     ).start();
   }
 }
