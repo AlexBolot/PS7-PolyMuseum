@@ -8,8 +8,8 @@ import 'package:poly_museum/global.dart';
 import 'package:poly_museum/model/plugin.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:poly_museum/test_class.dart';
-import 'package:poly_museum/plugin_dao.dart';
-import 'package:poly_museum/db_structure.dart';
+import 'package:poly_museum/firebase_dao/plugin_dao.dart';
+import 'package:poly_museum/firebase_dao/db_structure.dart';
 
 class PluginService {
   final MethodChannel _pluginChannel = const MethodChannel('channel:polytech.al.imh/plugin');

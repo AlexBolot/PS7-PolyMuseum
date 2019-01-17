@@ -7,7 +7,7 @@ import 'package:poly_museum/object_research_game_view.dart';
 import 'package:poly_museum/services/plugin_service.dart';
 import 'package:poly_museum/services/service_provider.dart';
 
-import 'ColorChanger.dart';
+import 'app_builder.dart';
 
 void main() => runApp(MyApp());
 
