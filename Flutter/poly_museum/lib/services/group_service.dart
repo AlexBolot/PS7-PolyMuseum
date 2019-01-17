@@ -11,30 +11,28 @@ class GroupService {
   List<int> get groupIDs => groups.map((group) => int.tryParse(group.id.replaceAll('groupe', ''))).toList();
 
   void streamGroups() {
-    _groupsStream = museumReference.collection("GroupesVisite").snapshots().listen(
-      (querySnapshot) {
-        groups = querySnapshot.documents.map((snap) => Group.fromMap(snap)).toList();
-      }
-    );
+    _groupsStream = museumReference.collection("GroupesVisite").snapshots().listen((querySnapshot) {
+      groups = querySnapshot.documents.map((snap) => Group.fromMap(snap)).toList();
+    });
   }
 
   void dispose() => _groupsStream?.cancel();
 
-  void createGroup(int id, String code) {
-    museumReference
+  Future createGroup(int id, String code) async {
+    await museumReference
         .collection("GroupesVisite")
         .document('$id')
         .setData({'groupeCode': code, 'isFinished': false, 'isStarted': false});
   }
 
-  void addMemberToGroup(String name, String code) {
+  Future addMemberToGroup(String name, String code) async {
     if (_groupsStream == null) {
       streamGroups();
     }
 
     Group group = groups.singleWhere((group) => group.groupeCode == code);
 
-    museumReference
+    await museumReference
         .collection("GroupesVisite")
         .document(group.id)
         .collection('Membres')

@@ -33,15 +33,15 @@ class ObjectResearchGameService {
     );
   }
 
-  void startGame(VoidCallback callback, userGroup) {
-    museumReference.collection("GroupesVisite").document("groupe$userGroup").updateData({
+  Future startGame(VoidCallback callback, userGroup) async {
+    await museumReference.collection("GroupesVisite").document("groupe$userGroup").updateData({
       'isFinished': false,
       'isStarted': true,
     });
   }
 
-  void endGame(VoidCallback callback, userGroup) {
-    museumReference.collection("GroupesVisite").document("groupe$userGroup").updateData({
+  Future endGame(VoidCallback callback, userGroup) async {
+    await museumReference.collection("GroupesVisite").document("groupe$userGroup").updateData({
       'isFinished': true,
       'isStarted': false,
     });
@@ -78,8 +78,8 @@ class ObjectResearchGameService {
     getTeamNumber(userGroup);
   }
 
-  void teamFoundObject(userGroup, keyObject, description, List teamFoundObject) {
-    museumReference
+  Future teamFoundObject(userGroup, keyObject, description, List teamFoundObject) async {
+    await museumReference
         .collection("GroupesVisite")
         .document("groupe$userGroup")
         .collection("JeuRechercheObjet")

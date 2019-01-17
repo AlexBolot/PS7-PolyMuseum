@@ -4,11 +4,9 @@ import 'package:poly_museum/object_research_game_view.dart';
 import 'package:poly_museum/front_view.dart';
 import 'package:poly_museum/game_guide_view.dart';
 import 'package:poly_museum/guide_view.dart';
-import 'package:poly_museum/services/group_service.dart';
 import 'package:poly_museum/services/plugin_service.dart';
 import 'package:poly_museum/services/service_provider.dart';
 import 'ColorChanger.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 void main() => runApp(MyApp());
 
