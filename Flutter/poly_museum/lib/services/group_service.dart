@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:poly_museum/global.dart';
 import 'package:poly_museum/model/group.dart';
+import 'package:poly_museum/test_class.dart';
 
 class GroupService {
   StreamSubscription<QuerySnapshot> _groupsStream;
@@ -11,13 +12,17 @@ class GroupService {
   List<int> get groupIDs => groups.map((group) => int.tryParse(group.id.replaceAll('groupe', ''))).toList();
 
   /// Method that allow to obtain a list of groups based on the database
-  void streamGroups() {
+  void streamGroups([callback]) {
     _groupsStream = museumReference.collection("GroupesVisite").snapshots().listen(
             (querySnapshot) {
           groups = querySnapshot.documents.map((snap) => Group.fromMap(snap)).toList();
+          if(callback!=null){
+            callback();
+          }
         }
     );
   }
+
 
   /// Method that allow to stop listening to groupStream
   void dispose() => _groupsStream?.cancel();
@@ -40,7 +45,6 @@ class GroupService {
     if (_groupsStream == null) {
       streamGroups();
     }
-
     Group group = groups.singleWhere((group) => group.groupeCode == code);
 
     await museumReference
@@ -49,5 +53,38 @@ class GroupService {
         .collection('Membres')
         .document()
         .setData({'prenom': name});
+  }
+
+  testGroupService(){
+    //CHECK IF WE CAN ADD A MEMBER TO A GIVEN GROUP
+    TestCase(
+        body: () {
+          changeMuseumTarget("NiceTest");
+          print("bodyEntered");
+          streamGroups(() async {
+            var sizeBefore = await museumReference
+                .collection("GroupesVisite")
+                .document("groupe1")
+                .collection('Membres')
+                .getDocuments().then((data) {
+              return (data.documents.length);
+            });
+            addMemberToGroup("coco", "123");
+            var sizeAfter = await museumReference
+                .collection("GroupesVisite")
+                .document("groupe1")
+                .collection('Membres')
+                .getDocuments().then((data) {
+              return (data.documents.length);
+            });
+            TestCase.assertTrue(sizeBefore==(sizeAfter-1));
+            changeMuseumTarget("NiceSport");
+            dispose();
+          });
+        },after: (){
+          print("TEST GROUP SERVICE Success");
+        }
+
+    ).start();
   }
 }
