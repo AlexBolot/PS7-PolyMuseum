@@ -7,6 +7,9 @@ import 'package:flutter/services.dart';
 import 'package:poly_museum/global.dart';
 import 'package:poly_museum/model/plugin.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:poly_museum/test_class.dart';
+import 'package:poly_museum/plugin_dao.dart';
+import 'package:poly_museum/db_structure.dart';
 
 class PluginService {
   final MethodChannel _pluginChannel = const MethodChannel('channel:polytech.al.imh/plugin');
@@ -48,6 +51,7 @@ class PluginService {
       if(!doc.data["activated"]) continue;
 
       DocumentSnapshot ref = await doc.data["ref"].get();
+
       var plugin = Plugin.fromSnapshot(ref);
       _plugins.add(plugin);
       print(_plugins);
@@ -125,4 +129,40 @@ class PluginService {
 
     appBuilder.state.rebuild();
   }
+
+  void testPluginService() async {
+    TestCase(
+      setUp : () {
+        changeMuseumTarget(DBStructure.test_museum_document);
+        
+        PluginDAO pluginDAO = new PluginDAO();
+        pluginDAO.insert(new Plugin(
+            'pa.ck.age.PluginClass',
+            'u.rl/plugin.jar',
+            'foo',
+            'plugin.jar',
+            false,
+            'plugin',
+            DBStructure.test_museum_document));
+        
+      pluginDAO.insert(new Plugin(
+            'pa.ck.age.Plugin2Class',
+            'u.rl/plugin2.jar',
+            'bar',
+            'plugin2.jar',
+            false,
+            'plugin2',
+            DBStructure.test_museum_document));
+      
+},
+      body : () async {
+        await streamPluginsData();
+        TestCase.assertSame(2, _plugins.length);
+      },
+      after : () {
+        print('AFTER');
+      }
+    ).start();
+  }
 }
+

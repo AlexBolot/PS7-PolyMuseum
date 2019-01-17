@@ -216,7 +216,8 @@ class ObjectResearchGameService {
         startGame(() {
           TestCase.assertTrue(gameStatusBegin);
         }, 1);
-      },
+      endGame((){TestCase.assertTrue(gameStatusEnd);}, 1);
+    },
     ).start();
   }
 }
