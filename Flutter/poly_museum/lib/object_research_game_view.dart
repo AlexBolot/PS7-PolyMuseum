@@ -60,7 +60,7 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
         card2 = addNewCard("L'équipe vainqueur est l'équipe numéro $winningTeam");
       }
 
-²      int seconds = gameService.gameDuration.inSeconds;
+      int seconds = gameService.gameDuration.inSeconds;
       int hours = seconds ~/ 3600;
       seconds = seconds % 3600;
       int minutes = seconds ~/ 60;
