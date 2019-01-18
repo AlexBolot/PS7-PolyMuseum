@@ -160,7 +160,8 @@ class _MyHomePageState extends State<MyHomePage> {
                     controller: nameController,
                     textCapitalization: TextCapitalization.words,
                     style: TextStyle(fontSize: 20.0, color: Colors.black),
-                    decoration: InputDecoration(hintText: 'Nom au sein du groupe'),
+                    decoration: InputDecoration(
+                        hintText: 'Nom au sein du groupe'),
                   ),
                   TextFormField(
                     controller: codeController,
@@ -171,7 +172,9 @@ class _MyHomePageState extends State<MyHomePage> {
                   Padding(
                     padding: const EdgeInsets.only(top: 8.0),
                     child: RaisedButton(
-                      color: Theme.of(context).primaryColor,
+                      color: Theme
+                          .of(context)
+                          .primaryColor,
                       textColor: Colors.grey[300],
                       onPressed: () => Navigator.pop(context),
                       child: Text('Valider'),
@@ -188,8 +191,33 @@ class _MyHomePageState extends State<MyHomePage> {
     String name = nameController.text.trim();
     String code = codeController.text.trim();
 
-    ServiceProvider.groupService.addMemberToGroup(name, code);
-
-    Navigator.of(context).pushNamed('/VisitorView');
+    if (name != "" && code != "") {
+      ServiceProvider.groupService.addMemberToGroup(name, code);
+    }
+    else if (code == "E84KD") {
+      Navigator.of(context).pushNamed('/VisitorView');
+    } else {
+      await showDialog<String>(
+        context: context,
+        builder: (BuildContext context) {
+          return SimpleDialog(
+            title: const Text("Le groupe n'existe pas, rééssayez"),
+            children: <Widget>[
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0),
+                child: RaisedButton(
+                  color: Theme
+                      .of(context)
+                      .primaryColor,
+                  textColor: Colors.grey[300],
+                  onPressed: () => Navigator.pop(context),
+                  child: Text('Valider'),
+                ),
+              ),
+            ],
+          );
+        },
+      );
+    }
   }
 }
