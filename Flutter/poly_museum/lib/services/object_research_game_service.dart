@@ -79,6 +79,9 @@ class ObjectResearchGameService {
         .listen((data) async {
       objectsGame = List();
       for (DocumentSnapshot doc in data.documents) {
+        // The if statement below ensures that we get the elements from the "Object" documents,
+        // to add the right objects in @objectGame list and not something else.
+        // Problem : if the "objet1" is deleted from the DB, the list can't add anything
         if (doc.data.keys.contains("objet1")) {
             Future iterateMapEntry(key, value) async {
             doc.data[key] = value;

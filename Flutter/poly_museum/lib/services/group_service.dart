@@ -43,7 +43,6 @@ class GroupService {
       streamGroups();
     }
     Group group = groups.singleWhere((group) => group.groupeCode == code);
-
     await museumReference
         .collection("GroupesVisite")
         .document(group.id)
