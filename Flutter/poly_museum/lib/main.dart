@@ -6,7 +6,6 @@ import 'package:poly_museum/guide_view.dart';
 import 'package:poly_museum/object_research_game_view.dart';
 import 'package:poly_museum/services/plugin_service.dart';
 import 'package:poly_museum/services/service_provider.dart';
-
 import 'app_builder.dart';
 
 void main() => runApp(MyApp());
@@ -17,20 +16,19 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (testing) {
-
       ServiceProvider.gameService.testGameService();
       ServiceProvider.groupService.testGroupService();
-
+      ServiceProvider.pluginService.testStreamPluginsData();
     } else {
       ServiceProvider.groupService.streamGroups();
+    }
+    
+    PluginService pluginService = ServiceProvider.pluginService;
 
-      PluginService pluginService = ServiceProvider.pluginService;
-
-      pluginService.streamPluginsData().then((value) async {
+    pluginService.streamPluginsData().then((value) async {
         await pluginService.initPlugins();
         await pluginService.processThemePlugins();
-      });
-    }
+    });
 
     appBuilder = AppBuilder(
       builder: (context) {
