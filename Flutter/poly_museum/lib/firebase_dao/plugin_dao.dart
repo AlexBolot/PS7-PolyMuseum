@@ -33,20 +33,4 @@ class PluginDAO {
       });
     }
   }
-
-  void delete(Plugin plugin) {
-    DocumentReference pluginsCollection = _firestore
-      .collection(DBStructure.plugins_collection);
-
-    QuerySnapshot museumPluginsCollection = await _firestore
-    .collection(DBStructure.museum_collection)
-    .document(DBStructure.test_museum_document)
-    .collection(DBStructure.museum_plugins_collection);
-    .getDocuments();
-
-    for (DocumentSnapshot doc : museumPluginsCollection) {
-      doc.
-    }
-    
-  }
 }

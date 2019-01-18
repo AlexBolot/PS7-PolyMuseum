@@ -10,7 +10,7 @@ import 'app_builder.dart';
 
 void main() => runApp(MyApp());
 
-bool testing = true;
+bool testing = false;
 
 class MyApp extends StatelessWidget {
   @override
@@ -21,14 +21,13 @@ class MyApp extends StatelessWidget {
       ServiceProvider.pluginService.testStreamPluginsData();
     } else {
       ServiceProvider.groupService.streamGroups();
-    }
-    
-    PluginService pluginService = ServiceProvider.pluginService;
+      PluginService pluginService = ServiceProvider.pluginService;
 
-    pluginService.streamPluginsData().then((value) async {
-        await pluginService.initPlugins();
-        await pluginService.processThemePlugins();
-    });
+      pluginService.streamPluginsData().then((value) async {
+          await pluginService.initPlugins();
+          await pluginService.processThemePlugins();
+      });
+    }
 
     appBuilder = AppBuilder(
       builder: (context) {

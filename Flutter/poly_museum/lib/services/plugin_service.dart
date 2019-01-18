@@ -54,19 +54,20 @@ class PluginService {
 
       var plugin = Plugin.fromSnapshot(ref);
       _plugins.add(plugin);
-      print(_plugins);
       // Getting plugin config
 
-      _configRef = doc.reference.collection('config').document('current');
-      DocumentSnapshot config = await _configRef.get();
+      if (plugin.config) {
+        _configRef = doc.reference.collection('config').document('current');
+        DocumentSnapshot config = await _configRef.get();
 
-      Map<String, dynamic> configMap = {};
+        Map<String, dynamic> configMap = {};
 
-      for (String key in config.data.keys) {
-        configMap.putIfAbsent(key, () => config.data[key]);
+        for (String key in config.data.keys) {
+          configMap.putIfAbsent(key, () => config.data[key]);
+        }
+
+        _configs.putIfAbsent(plugin.type, () => configMap);
       }
-
-      _configs.putIfAbsent(plugin.type, () => configMap);
     }
   }
 
@@ -140,7 +141,7 @@ class PluginService {
     PluginDAO pluginDAO = new PluginDAO();
     this.plugin = new Plugin(
       'pa.ck.age.PluginClass',
-      'u.rl/plugin.jar',
+      'https://firebasestorage.googleapis.com/v0/b/polymuseum-ps7.appspot.com/o/Plugins%2Fplugin_foo-0.2.jar?alt=media&token=837d73c6-8267-4f6a-bb29-11ce95f90051',
       'foo',
       'plugin.jar',
       false,
@@ -149,7 +150,7 @@ class PluginService {
 
     this.plugin2 = new Plugin(
       'pa.ck.age.Plugin2Class',
-      'u.rl/plugin2.jar',
+      'https://firebasestorage.googleapis.com/v0/b/polymuseum-ps7.appspot.com/o/Plugins%2Fplugin_foo-0.2.jar?alt=media&token=837d73c6-8267-4f6a-bb29-11ce95f90051',
       'bar',
       'plugin2.jar',
       false,
@@ -161,14 +162,15 @@ class PluginService {
   }
   
 
-  void testStreamPluginsData() async {
+  void testStreamPluginsData() {
     TestCase(
       setUp : () {
         setUpTest();
       },
-      body : () async {
-        await streamPluginsData();
-        TestCase.assertSame(2, _plugins.length);
+      body : () {
+        streamPluginsData().then((data) {
+            TestCase.assertSame(2, _plugins.length);
+        });
       },
       after : () {
         
