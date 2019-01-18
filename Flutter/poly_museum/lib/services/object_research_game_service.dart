@@ -21,9 +21,12 @@ class ObjectResearchGameService {
   bool _gameStatusEnd;
 
   bool get gameStatusBegin => _gameStatusBegin ?? false;
-
   bool get gameStatusEnd => _gameStatusEnd ?? false;
 
+  DateTime _startDateTime = null;
+  DateTime _endDateTime = null;
+
+  Duration get gameDuration => _gameStatusEnd ? _endDateTime.difference(_startDateTime) : null;
   ///
   /// This method streams the values from game status, whether it is began or finished
   /// (isStarted and isFinished in the Database) corresponding to the right userGroup
@@ -41,21 +44,25 @@ class ObjectResearchGameService {
   ///
   /// Indicates a game has begun in the corresponding userGroup
   ///
-  void startGame(VoidCallback callback, userGroup) {
-    museumReference.collection("GroupesVisite").document("groupe$userGroup").updateData({
-      'isFinished': false,
-      'isStarted': true,
+  void startGame(VoidCallback callback, userGroup) async {
+    await museumReference.collection("GroupesVisite").document("groupe$userGroup").updateData({
+        'isFinished': false,
+        'isStarted': true,
     });
+
+    _startDateTime = new DateTime.now();
   }
 
   ///
   /// Indicates a game is finished in the corresponding userGroup
   ///
-  void endGame(VoidCallback callback, userGroup) {
-    museumReference.collection("GroupesVisite").document("groupe$userGroup").updateData({
+  void endGame(VoidCallback callback, userGroup) async {
+    await museumReference.collection("GroupesVisite").document("groupe$userGroup").updateData({
       'isFinished': true,
       'isStarted': false,
     });
+
+    _endDateTime = new DateTime.now();
   }
 
   ///

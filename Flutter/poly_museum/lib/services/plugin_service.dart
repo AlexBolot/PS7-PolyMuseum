@@ -154,18 +154,10 @@ class PluginService {
       'plugin2.jar',
       false,
       'plugin2',
-      DBStructure.test_museum_document)
+      DBStructure.test_museum_document);
     
     pluginDAO.insert(plugin);
     pluginDAO.insert(plugin2);
-    
-    pluginDAO.insert();
-  }
-
-  void afterTest() {
-    PluginDAO pluginDAO = new PluginDAO();
-    pluginDAO.delete(plugin);
-    pluginDAO.delete(plugin2x);
   }
   
 
