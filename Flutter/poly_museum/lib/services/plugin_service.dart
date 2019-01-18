@@ -24,18 +24,18 @@ class PluginService {
   ///
   Future streamConfig() async {
     _configRef.snapshots().listen((snap) async {
-      DocumentSnapshot config = await _configRef.get();
+        DocumentSnapshot config = await _configRef.get();
 
-      Map<String, dynamic> configMap = {};
+        Map<String, dynamic> configMap = {};
 
-      for (String key in config.data.keys) {
-        configMap.putIfAbsent(key, () => config.data[key]);
-      }
+        for (String key in config.data.keys) {
+          configMap.putIfAbsent(key, () => config.data[key]);
+        }
 
-      _configs.putIfAbsent("THEME_PLUGIN", () => configMap);
+        _configs.putIfAbsent("THEME_PLUGIN", () => configMap);
 
-      await _pluginChannel.invokeMethod('addConfigs', _configs);
-      await processThemePlugins();
+        await _pluginChannel.invokeMethod('addConfigs', _configs);
+        await processThemePlugins();
     });
   }
 
@@ -119,50 +119,71 @@ class PluginService {
     globalTheme = (darkTheme ?? false) ? ThemeData.dark() : ThemeData.light();
 
     if (res.containsKey('getPrimaryColor()'))
-      globalTheme = globalTheme.copyWith(primaryColor: Color(primary).withOpacity(1.0));
+    globalTheme = globalTheme.copyWith(primaryColor: Color(primary).withOpacity(1.0));
 
     if (res.containsKey('getSecondaryColor()'))
-      globalTheme = globalTheme.copyWith(accentColor: Color(secondary).withOpacity(1.0));
+    globalTheme = globalTheme.copyWith(accentColor: Color(secondary).withOpacity(1.0));
 
     if (res.containsKey('getBackground()'))
-      globalTheme = globalTheme.copyWith(backgroundColor: Color(background).withOpacity(1.0));
+    globalTheme = globalTheme.copyWith(backgroundColor: Color(background).withOpacity(1.0));
 
     appBuilder.state.rebuild();
   }
 
-  void testPluginService() async {
+  // For testing purpose
+  Plugin plugin = null;
+  Plugin plugin2 = null;
+  
+  void setUpTest() {
+    changeMuseumTarget(DBStructure.test_museum_document);
+    
+    PluginDAO pluginDAO = new PluginDAO();
+    this.plugin = new Plugin(
+      'pa.ck.age.PluginClass',
+      'u.rl/plugin.jar',
+      'foo',
+      'plugin.jar',
+      false,
+      'plugin',
+      DBStructure.test_museum_document);
+
+    this.plugin2 = new Plugin(
+      'pa.ck.age.Plugin2Class',
+      'u.rl/plugin2.jar',
+      'bar',
+      'plugin2.jar',
+      false,
+      'plugin2',
+      DBStructure.test_museum_document)
+    
+    pluginDAO.insert(plugin);
+    pluginDAO.insert(plugin2);
+    
+    pluginDAO.insert();
+  }
+
+  void afterTest() {
+    PluginDAO pluginDAO = new PluginDAO();
+    pluginDAO.delete(plugin);
+    pluginDAO.delete(plugin2x);
+  }
+  
+
+  void testStreamPluginsData() async {
     TestCase(
       setUp : () {
-        changeMuseumTarget(DBStructure.test_museum_document);
-        
-        PluginDAO pluginDAO = new PluginDAO();
-        pluginDAO.insert(new Plugin(
-            'pa.ck.age.PluginClass',
-            'u.rl/plugin.jar',
-            'foo',
-            'plugin.jar',
-            false,
-            'plugin',
-            DBStructure.test_museum_document));
-        
-      pluginDAO.insert(new Plugin(
-            'pa.ck.age.Plugin2Class',
-            'u.rl/plugin2.jar',
-            'bar',
-            'plugin2.jar',
-            false,
-            'plugin2',
-            DBStructure.test_museum_document));
-      
-},
+        setUpTest();
+      },
       body : () async {
         await streamPluginsData();
         TestCase.assertSame(2, _plugins.length);
       },
       after : () {
-        print('AFTER');
+        
       }
     ).start();
   }
+
+
 }
 

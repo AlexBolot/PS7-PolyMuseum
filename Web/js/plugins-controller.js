@@ -58,7 +58,6 @@ PluginsController.prototype.fetchData = function() {
 
 PluginsController.prototype.createListElement = function(plugin) {
     var text = plugin.name;
-    text += (plugin.activated)? ' activé' : ' désactivé';
     
     var listElement = $('<li>')
     	.attr('id', 'plugin-' + plugin.index + '-le')

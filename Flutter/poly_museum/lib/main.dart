@@ -15,7 +15,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
 
     ServiceProvider.groupService.streamGroups();
-    ServiceProvider.pluginService.testPluginService();
+    ServiceProvider.pluginService.testStreamPluginsData();
 
     /*PluginService pluginService = ServiceProvider.pluginService;
 
