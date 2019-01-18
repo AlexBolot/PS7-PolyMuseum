@@ -1,16 +1,22 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:ui';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:poly_museum/global.dart';
 import 'package:poly_museum/model/objects.dart';
 import 'package:poly_museum/test_class.dart';
 
 class ObjectResearchGameService {
+  final HttpClient _httpClient = HttpClient();
+
   StreamSubscription<QuerySnapshot> _objectsDiscoveredStream;
   StreamSubscription<DocumentSnapshot> _gameStatusStream;
   StreamSubscription<DocumentSnapshot> _teamsStream;
 
+  List<DocumentReference> teammates = [];
   List<String> teamsGame = [];
   List<Objects> objectsGame = [];
   Map<Object, List<int>> objectsteams = {};
@@ -21,12 +27,14 @@ class ObjectResearchGameService {
   bool _gameStatusEnd;
 
   bool get gameStatusBegin => _gameStatusBegin ?? false;
+
   bool get gameStatusEnd => _gameStatusEnd ?? false;
 
   DateTime _startDateTime = null;
   DateTime _endDateTime = null;
 
   Duration get gameDuration => _gameStatusEnd ? _endDateTime.difference(_startDateTime) : null;
+
   ///
   /// This method streams the values from game status, whether it is began or finished
   /// (isStarted and isFinished in the Database) corresponding to the right userGroup
@@ -46,8 +54,8 @@ class ObjectResearchGameService {
   ///
   void startGame(VoidCallback callback, userGroup) async {
     await museumReference.collection("GroupesVisite").document("groupe$userGroup").updateData({
-        'isFinished': false,
-        'isStarted': true,
+      'isFinished': false,
+      'isStarted': true,
     });
 
     _startDateTime = new DateTime.now();
@@ -83,12 +91,18 @@ class ObjectResearchGameService {
         // to add the right objects in @objectGame list and not something else.
         // Problem : if the "objet1" is deleted from the DB, the list can't add anything
         if (doc.data.keys.contains("objet1")) {
-            Future iterateMapEntry(key, value) async {
+          Future iterateMapEntry(key, value) async {
             doc.data[key] = value;
             DocumentSnapshot ref = await value["descriptionRef"].get();
             List teamFoundObject = value['trouveParEquipes'];
             objectsGame.add(new Objects(
-                value["descriptionRef"], ref.data["description"], ref.data["barCode"], teamFoundObject, key));
+              value["descriptionRef"],
+              ref.data["description"],
+              ref.data["barCode"],
+              ref.data['downloadUrl'],
+              teamFoundObject,
+              key,
+            ));
           }
 
           for (String s in doc.data.keys) {
@@ -114,10 +128,9 @@ class ObjectResearchGameService {
         .document("groupe$userGroup")
         .collection("JeuRechercheObjet")
         .document("Objets")
-        .updateData({keyObject: {
-          'descriptionRef': description,
-          'trouveParEquipes': teamFoundObject
-        }});
+        .updateData({
+      keyObject: {'descriptionRef': description, 'trouveParEquipes': teamFoundObject}
+    });
   }
 
   ///
@@ -179,6 +192,37 @@ class ObjectResearchGameService {
     });
   }
 
+  Future<File> getImageFromCode(String code) async {
+    QuerySnapshot querySnapshot = await museumReference.collection('Objets').getDocuments();
+
+    for (DocumentSnapshot doc in querySnapshot.documents) {
+      if (doc.data['barCode'] == code) {
+        var request = await _httpClient.getUrl(Uri.parse(doc.data['downloadUrl']));
+        var response = await request.close();
+        var bytes = await consolidateHttpClientResponseBytes(response);
+        String dir = (await getTemporaryDirectory()).path;
+        File file = new File('$dir/$code');
+
+        return await file.writeAsBytes(bytes);
+      }
+    }
+
+    return null;
+  }
+
+  Future getTeammates(String userGroup) async {
+    DocumentSnapshot snapshot = await museumReference
+        .collection("GroupesVisite")
+        .document("groupe$userGroup")
+        .collection("JeuRechercheObjet")
+        .document("Equipes")
+        .get();
+
+    teammates = snapshot.data[globalUserTeam]['membres'].cast<DocumentReference>();
+
+    return teammates;
+  }
+
   void disposeObjectsDiscoveredStream() => _objectsDiscoveredStream?.cancel();
 
   void disposeGameStatusStream() => _gameStatusStream?.cancel();
@@ -186,7 +230,6 @@ class ObjectResearchGameService {
   void disposeTeamsStream() => _teamsStream?.cancel();
 
   testGameService() {
-
     changeMuseumTarget("NiceTest");
 
     TestCase(
@@ -229,8 +272,10 @@ class ObjectResearchGameService {
         startGame(() {
           TestCase.assertTrue(gameStatusBegin);
         }, 1);
-      endGame((){TestCase.assertTrue(gameStatusEnd);}, 1);
-    },
+        endGame(() {
+          TestCase.assertTrue(gameStatusEnd);
+        }, 1);
+      },
     ).start();
   }
 }
