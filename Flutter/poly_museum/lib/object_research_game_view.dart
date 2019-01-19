@@ -114,7 +114,7 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
       }
     } on FormatException {
       this.barcode =
-          'null (User returned using the "back"-button before scanning anything. Result)';
+      'null (User returned using the "back"-button before scanning anything. Result)';
     } catch (e) {
       this.barcode = 'Unknown error: $e';
     }
@@ -167,13 +167,13 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
     );
   }
 
-  void displayObjectAlreadyFound(Objects object) {
+  void displayObjectAlreadyFound(Objects object) async {
+    String m = await gameService.getFoundObjectInfo(object, userGroup, userTeam);
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text(gameService.getFoundObjectInfo(
-          object, userGroup, userTeam, _refresh)),
+          title: Text(m),
           actions: <Widget>[
             FlatButton(
               onPressed: () => Navigator.of(context).pop(),

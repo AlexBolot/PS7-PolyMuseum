@@ -196,8 +196,8 @@ class ObjectResearchGameService {
     });
   }
 
-  String getFoundObjectInfo(Objects object, String userGroup, String userTeam,
-      VoidCallback callback) {
+  Future<String> getFoundObjectInfo(
+      Objects object, String userGroup, String userTeam) async {
     //Rajouter une photo peut etre ?
     String result = "";
     String userID;
@@ -207,18 +207,15 @@ class ObjectResearchGameService {
         userID = v.key;
       }
     }
-    StreamSubscription<DocumentSnapshot> teams;
-    teams = museumReference
+
+    DocumentSnapshot snap = await museumReference
         .collection("GroupesVisite")
         .document("groupe$userGroup")
         .collection("Membres")
         .document("membre$userID")
-        .snapshots()
-        .listen((snap) async {
-      username = await (snap.data["prenom"]);
-      print(username);
-      callback();
-    });
+        .get();
+    username = snap.data["prenom"];
+
     result = "Il s'agissait de : " + object.name + " trouvé par $username";
     return result;
   }
