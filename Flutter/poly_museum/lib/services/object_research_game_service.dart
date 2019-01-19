@@ -29,7 +29,11 @@ class ObjectResearchGameService {
   /// (isStarted and isFinished in the Database) corresponding to the right userGroup
   ///
   void updateGameStatus(VoidCallback callback, userGroup) {
-    _gameStatusStream = museumReference.collection("GroupesVisite").document("groupe$userGroup").snapshots().listen(
+    _gameStatusStream = museumReference
+        .collection("GroupesVisite")
+        .document("groupe$userGroup")
+        .snapshots()
+        .listen(
       (groupData) {
         _gameStatusBegin = groupData.data["isStarted"];
         _gameStatusEnd = groupData.data["isFinished"];
@@ -42,7 +46,10 @@ class ObjectResearchGameService {
   /// Indicates a game has begun in the corresponding userGroup
   ///
   void startGame(VoidCallback callback, userGroup) {
-    museumReference.collection("GroupesVisite").document("groupe$userGroup").updateData({
+    museumReference
+        .collection("GroupesVisite")
+        .document("groupe$userGroup")
+        .updateData({
       'isFinished': false,
       'isStarted': true,
     });
@@ -52,7 +59,10 @@ class ObjectResearchGameService {
   /// Indicates a game is finished in the corresponding userGroup
   ///
   void endGame(VoidCallback callback, userGroup) {
-    museumReference.collection("GroupesVisite").document("groupe$userGroup").updateData({
+    museumReference
+        .collection("GroupesVisite")
+        .document("groupe$userGroup")
+        .updateData({
       'isFinished': true,
       'isStarted': false,
     });
@@ -73,12 +83,27 @@ class ObjectResearchGameService {
       objectsGame = List();
       for (DocumentSnapshot doc in data.documents) {
         if (doc.data.keys.contains("objet1")) {
-            Future iterateMapEntry(key, value) async {
+          //key= objet1,
+          Future iterateMapEntry(key, value) async {
             doc.data[key] = value;
             DocumentSnapshot ref = await value["descriptionRef"].get();
-            List teamFoundObject = value['trouveParEquipes'];
+            Map<String, String> userAndTeams = new Map();
+            //TKT c'est que les autres ils écrivent dans la base et donc ils suppriment tout ton beau travail
+            //T'as juste à rajouter le membresEquipes
+            List v = value['membresEquipes'] ?? [];
+            //print(v.toString());
+            for (int i = 0; i < v.length; i++) {
+              userAndTeams.update(
+                  v[i]["membreID"], (String) => v[i]["equipeID"],
+                  ifAbsent: () => v[i]["equipeID"]);
+            }
             objectsGame.add(new Objects(
-                value["descriptionRef"], ref.data["description"], ref.data["barCode"], teamFoundObject, key));
+                value["descriptionRef"],
+                ref.data["description"],
+                ref.data["barCode"],
+                userAndTeams,
+                key,
+                ref.data["nom"]));
           }
 
           for (String s in doc.data.keys) {
@@ -98,16 +123,18 @@ class ObjectResearchGameService {
   /// Updates the database when a team have found an object in the game
   /// It adds the teams number in the list of teams that have found the correct object
   ///
-  void teamFoundObject(userGroup, keyObject, description, List teamFoundObject) {
+  void teamFoundObject(userGroup, keyObject, description, Map membresEquipes) {
     museumReference
         .collection("GroupesVisite")
         .document("groupe$userGroup")
         .collection("JeuRechercheObjet")
         .document("Objets")
-        .updateData({keyObject: {
-          'descriptionRef': description,
-          'trouveParEquipes': teamFoundObject
-        }});
+        .updateData({
+      keyObject: {
+        'descriptionRef': description,
+        'membresEquipes': membresEquipes
+      }
+    });
   }
 
   ///
@@ -135,7 +162,7 @@ class ObjectResearchGameService {
     for (int i = 0; i < numberTeams; i++) {
       int nbObjetsParEquipe = 0;
       for (Objects o in objectsGame) {
-        if (o.discoveredByTeams.contains(i.toString())) {
+        if (o.userAndTeam.containsKey(i.toString()) ?? false) {
           nbObjetsParEquipe++;
         }
         if (nbObjects == nbObjetsParEquipe) {
@@ -169,6 +196,33 @@ class ObjectResearchGameService {
     });
   }
 
+  String getFoundObjectInfo(Objects object, String userGroup, String userTeam,
+      VoidCallback callback) {
+    //Rajouter une photo peut etre ?
+    String result = "";
+    String userID;
+    String username;
+    for (MapEntry<String, String> v in object.userAndTeam.entries.toList()) {
+      if (v.value == userTeam) {
+        userID = v.key;
+      }
+    }
+    StreamSubscription<DocumentSnapshot> teams;
+    teams = museumReference
+        .collection("GroupesVisite")
+        .document("groupe$userGroup")
+        .collection("Membres")
+        .document("membre$userID")
+        .snapshots()
+        .listen((snap) async {
+      username = await (snap.data["prenom"]);
+      print(username);
+      callback();
+    });
+    result = "Il s'agissait de : " + object.name + " trouvé par $username";
+    return result;
+  }
+
   void disposeObjectsDiscoveredStream() => _objectsDiscoveredStream?.cancel();
 
   void disposeGameStatusStream() => _gameStatusStream?.cancel();
@@ -176,7 +230,6 @@ class ObjectResearchGameService {
   void disposeTeamsStream() => _teamsStream?.cancel();
 
   testGameService() {
-
     changeMuseumTarget("NiceTest");
 
     TestCase(
@@ -219,8 +272,10 @@ class ObjectResearchGameService {
         startGame(() {
           TestCase.assertTrue(gameStatusBegin);
         }, 1);
-      endGame((){TestCase.assertTrue(gameStatusEnd);}, 1);
-    },
+        endGame(() {
+          TestCase.assertTrue(gameStatusEnd);
+        }, 1);
+      },
     ).start();
   }
 }

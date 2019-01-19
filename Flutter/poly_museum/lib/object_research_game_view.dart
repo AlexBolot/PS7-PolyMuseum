@@ -17,7 +17,7 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
   String userGroup = globalUserGroup;
   String userTeam = globalUserTeam;
   String userName = globalUserName;
-
+  String discover = "un membre de votre équipe";
   ObjectResearchGameService gameService = ServiceProvider.gameService;
 
   VoidCallback _refresh() {
@@ -29,6 +29,7 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
     super.initState();
     gameService.updateResearchGameDescriptions(_refresh, userGroup);
     gameService.updateGameStatus(_refresh, userGroup);
+    //gameService.getFoundObjectInfo(, userGroup, userTeam, _refresh)
   }
 
   @override
@@ -54,12 +55,12 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
       String winningTeam = gameService.winningTeam.toString();
       Card card = addNewCard("Partie terminée");
       Card card2;
-      if(winningTeam == '-1'){
+      if (winningTeam == '-1') {
         card2 = addNewCard("Aucune équipe n'a remporté le jeu");
-      }else{
-        card2 = addNewCard("L'équipe vainqueur est l'équipe numéro $winningTeam");
+      } else {
+        card2 =
+            addNewCard("L'équipe vainqueur est l'équipe numéro $winningTeam");
       }
-
 
       List<Widget> list = [];
       list.add(card);
@@ -70,8 +71,8 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
         return gameService.objectsGame.map((object) {
           return GestureDetector(
             onTap: () {
-              if (object.discoveredByTeams.contains(userTeam)) {
-                displayObjectAlreadyFound();
+              if (object.userAndTeam.values.contains(userTeam)) {
+                displayObjectAlreadyFound(object);
               } else {
                 scan(object);
               }
@@ -117,21 +118,23 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
     } catch (e) {
       this.barcode = 'Unknown error: $e';
     }
-    List objectFound;
+    Map membersTeams;
     var keyObject;
     var correctObjectFound = false;
 
     if (object.qrCode == this.barcode) {
-      objectFound = new List.from(object.discoveredByTeams);
-      objectFound.add(this.userTeam);
+      membersTeams = new Map.from(object.userAndTeam);
+      membersTeams.putIfAbsent(userName, () => userTeam);
+      /*objectFound = new List.from(object.userAndTeam.values);
+      objectFound.add(this.userTeam);*/
       keyObject = object.dataBaseName;
       correctObjectFound = true;
     }
 
     Future.delayed(new Duration(seconds: 1), () {
       if (correctObjectFound) {
-        gameService.teamFoundObject(
-            userGroup, keyObject, object.descriptionReference, objectFound);
+        gameService.teamFoundObject(userGroup, keyObject,
+            object.descriptionReference, membersTeams);
       }
       displayResult(correctObjectFound);
     });
@@ -140,8 +143,8 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
   ///Method used to change the color of a description when a object is found
   chooseColor(Objects object) {
     var color = Color.fromARGB(255, 255, 255, 255);
-    if (object.discoveredByTeams != null &&
-        object.discoveredByTeams.contains(userTeam)) {
+    if (object.userAndTeam.isNotEmpty &&
+        object.userAndTeam.values.contains(userTeam)) {
       color = Color.fromARGB(255, 50, 200, 50);
     }
     return color;
@@ -164,13 +167,13 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
     );
   }
 
-  void displayObjectAlreadyFound() {
+  void displayObjectAlreadyFound(Objects object) {
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title:
-              Text("L'objet sélectionné à déjà été trouvé par un coéquipier !"),
+          title: Text(gameService.getFoundObjectInfo(
+          object, userGroup, userTeam, _refresh)),
           actions: <Widget>[
             FlatButton(
               onPressed: () => Navigator.of(context).pop(),
@@ -200,6 +203,8 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
   }
 
   String textResult(result) {
-    return result ? "Bonne réponse ! Vous avez trouvé" : "Mauvaise réponse ! Continuez de chercher";
+    return result
+        ? "Bonne réponse ! Vous avez trouvé"
+        : "Mauvaise réponse ! Continuez de chercher";
   }
 }
