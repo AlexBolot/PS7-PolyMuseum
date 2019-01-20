@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
 
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
@@ -9,12 +10,14 @@ import 'package:poly_museum/global.dart';
 import 'package:poly_museum/model/objects.dart';
 import 'package:poly_museum/test_class.dart';
 
+
 class ObjectResearchGameService {
   final HttpClient _httpClient = HttpClient();
 
   StreamSubscription<QuerySnapshot> _objectsDiscoveredStream;
   StreamSubscription<DocumentSnapshot> _gameStatusStream;
   StreamSubscription<DocumentSnapshot> _teamsStream;
+  StreamSubscription<DocumentSnapshot> _timerObjectsStream;
 
   List<DocumentReference> teammates = [];
   List<String> teamsGame = [];
@@ -22,6 +25,9 @@ class ObjectResearchGameService {
   Map<Object, List<int>> objectsteams = {};
   int numberTeams;
   int winningTeam = -1;
+  Objects timerObject;
+  bool hasAnsweredTimerObject = false;
+  dynamic answerTimerObject;
 
   bool _gameStatusBegin;
   bool _gameStatusEnd;
@@ -113,9 +119,9 @@ class ObjectResearchGameService {
       if (numberTeams != null) {
         winningTeam = checkEndGame();
       }
+      getTimerObject(userGroup, () {});
       callback();
     });
-    getTeamNumber(userGroup, () {});
   }
 
   ///
@@ -134,18 +140,45 @@ class ObjectResearchGameService {
   }
 
   ///
-  /// Updates the number of teams present in the game
+  /// When a visitor receives an object to validate or not coming from another teammate
+  /// He can choose to validate or not the object presented with the description
   ///
-  void getTeamNumber(userGroup, VoidCallback callback) {
-    StreamSubscription<DocumentSnapshot> teams;
-    teams = museumReference
+  void updateTimerObjectResult(userGroup,teamNumber,userName,bool userResponse){
+    hasAnsweredTimerObject = true;
+    answerTimerObject[teamNumber]["timerObjects"]["members"][userName] = userResponse;
+    museumReference
+        .collection("GroupesVisite")
+        .document("groupe$userGroup")
+        .collection("JeuRechercheObjet")
+        .document("Equipes")
+        .updateData(answerTimerObject);
+  }
+
+  ///
+  /// Gets the object sent by a visitor present in the same group
+  /// Also Updates the number of teams present in the game
+  ///
+  void getTimerObject(userGroup, VoidCallback callback) {
+    _timerObjectsStream = museumReference
         .collection("GroupesVisite")
         .document("groupe$userGroup")
         .collection("JeuRechercheObjet")
         .document("Equipes")
         .snapshots()
         .listen((snap) {
+      timerObject = null;
       numberTeams = snap.data.length;
+      for (String s in snap.data.keys) {
+        for(Objects ob in objectsGame){
+          if(snap.data[s]["timerObjects"]["objectRef"] == ob.descriptionReference && snap.data[s]["timerObjects"]["members"].length > 0 && snap.data[s]["timerObjects"]["members"].keys.contains(globalUserName) && s == globalUserTeam ){
+            timerObject = ob;
+            answerTimerObject = {s : snap.data[s]};
+          }
+          if(!snap.data[s]["timerObjects"]["members"].keys.contains(globalUserName)){
+            hasAnsweredTimerObject = false;
+          }
+        }
+      }
       callback();
     });
   }
@@ -229,6 +262,8 @@ class ObjectResearchGameService {
 
   void disposeTeamsStream() => _teamsStream?.cancel();
 
+  void disposeTimerObjectsStream() => _timerObjectsStream?.cancel();
+
   testGameService() {
     changeMuseumTarget("NiceTest");
 
@@ -248,7 +283,7 @@ class ObjectResearchGameService {
     TestCase(
       name: "Get Team Number",
       body: () async {
-        getTeamNumber("1", () {
+        getTimerObject("1", () {
           TestCase.assertSame(numberTeams, 3);
         });
       },

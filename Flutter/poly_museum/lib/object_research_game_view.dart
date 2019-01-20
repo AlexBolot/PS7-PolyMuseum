@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:barcode_scan/barcode_scan.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -13,6 +15,8 @@ class ObjectResearchGameView extends StatefulWidget {
 }
 
 class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
+  File picture;
+  bool loadingImage = false;
   String barcode = globalBarcode;
   String userGroup = globalUserGroup;
   String userTeam = globalUserTeam;
@@ -29,6 +33,7 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
     super.initState();
     gameService.updateResearchGameDescriptions(_refresh, userGroup);
     gameService.updateGameStatus(_refresh, userGroup);
+
   }
 
   @override
@@ -40,12 +45,22 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
 
   @override
   Widget build(BuildContext context) {
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) {
+      if(gameService.timerObject != null && gameService.gameStatusBegin && !gameService.hasAnsweredTimerObject ){
+        print(gameService.timerObject.toString());
+        displayObjectSentTeamMate();
+      }
+    }
+    );
+
     return Scaffold(
-      appBar: AppBar(title: Text('Descriptions View')),
+      appBar: AppBar(title: Text("Jeu de recherche d'objet")),
       body: Container(
         child: new ListView(children: displayGameElements()),
       ),
     );
+
   }
 
   ///Method to display game elements (description, winning teams etc)
@@ -59,7 +74,6 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
       }else{
         card2 = addNewCard("L'équipe vainqueur est l'équipe numéro $winningTeam");
       }
-
       int seconds = gameService.gameDuration.inSeconds;
       int hours = seconds ~/ 3600;
       seconds = seconds % 3600;
@@ -190,6 +204,47 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
     );
   }
 
+  void displayObjectSentTeamMate() {
+    if(picture == null && !loadingImage){
+      loadImage(gameService.timerObject.qrCode);
+    }else {
+      showDialog(
+        context: context,
+        builder: (context) {
+          print("laa");
+          print(gameService.answerTimerObject["0"]["timerObjects"]["members"]["Pauline"]);
+          return new AlertDialog(
+            title: Text(gameService.timerObject.description),
+            content: displayImage(),
+            actions: <Widget>[
+              Center(
+                child: FlatButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    gameService.updateTimerObjectResult(userGroup, globalUserTeam, userName, true);
+                  },
+                  child: Text('Je valide',
+                    style: DefaultTextStyle.of(context).style.apply(color: Colors.green,fontSizeFactor: 0.5),
+                  ),
+                ),
+              ), Center(
+                child: FlatButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    gameService.updateTimerObjectResult(userGroup, globalUserTeam, userName, false);
+                  },
+                    child: Text('Je refuse',
+                      style: DefaultTextStyle.of(context).style.apply(color: Colors.red,fontSizeFactor: 0.5),
+                    ),
+                ),
+              ),
+            ],
+          );
+        },
+      );
+    }
+  }
+
   Card addNewCard(String text) {
     return Card(
       margin: EdgeInsets.symmetric(horizontal: 38.0, vertical: 4.0),
@@ -210,4 +265,31 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
   String textResult(result) {
     return result ? "Bonne réponse ! Vous avez trouvé" : "Mauvaise réponse ! Continuez de chercher";
   }
+
+  void loadImage(String code) async {
+    File file = await ServiceProvider.gameService.getImageFromCode(code);
+    setState(() {
+      picture = file;
+      loadingImage = true;
+    });
+  }
+
+  Widget displayImage() {
+    double size = 300.0;
+    if (picture != null && loadingImage) {
+      return Container(
+        width: size,
+        height: size,
+        padding: EdgeInsets.all(16.0),
+        child: Image.file(picture),
+      );
+    }
+    return Container(
+      width: size,
+      height: size,
+    );
+
+  }
+
+
 }
