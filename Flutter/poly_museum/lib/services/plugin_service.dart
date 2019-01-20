@@ -12,7 +12,7 @@ import 'package:poly_museum/firebase_dao/plugin_dao.dart';
 import 'package:poly_museum/firebase_dao/db_structure.dart';
 
 class PluginService {
-  final MethodChannel _pluginChannel = const MethodChannel('channel:polytech.al.imh/plugin');
+  final MethodChannel pluginChannel = const MethodChannel('channel:polytech.al.imh/plugin');
   final HttpClient _httpClient = HttpClient();
 
   List<Plugin> _plugins = [];
@@ -34,7 +34,7 @@ class PluginService {
 
       _configs.putIfAbsent("THEME_PLUGIN", () => configMap);
 
-      await _pluginChannel.invokeMethod('addConfigs', _configs);
+      await pluginChannel.invokeMethod('addConfigs', _configs);
       await processThemePlugins();
     });
   }
@@ -100,16 +100,16 @@ class PluginService {
       'pluginNames': _plugins.map((p) => p.type).toList(),
     };
 
-    await _pluginChannel.invokeMethod('addConfigs', _configs);
+    await pluginChannel.invokeMethod('addConfigs', _configs);
 
-    await _pluginChannel.invokeMethod('loadPlugins', map);
+    await pluginChannel.invokeMethod('loadPlugins', map);
   }
 
   ///
   /// Invokes the methods from the plugins precedently loaded plugins in the application
   ///
   processThemePlugins() async {
-    Map<dynamic, dynamic> res = await _pluginChannel.invokeMethod('processThemePlugins');
+    Map<dynamic, dynamic> res = await pluginChannel.invokeMethod('processThemePlugins');
 
     int primary = res['getPrimaryColor()'];
     int secondary = res['getSecondaryColor()'];
@@ -131,8 +131,8 @@ class PluginService {
   }
 
   // For testing purpose
-  Plugin plugin = null;
-  Plugin plugin2 = null;
+  Plugin plugin;
+  Plugin plugin2;
 
   void setUpTest() {
     changeMuseumTarget(DBStructure.test_museum_document);

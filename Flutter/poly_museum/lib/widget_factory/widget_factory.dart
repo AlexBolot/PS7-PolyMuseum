@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:poly_museum/services/service_provider.dart';
 import 'package:poly_museum/widget_factory/enum_factory.dart';
 
 class WidgetFactory {
@@ -30,6 +32,7 @@ class WidgetFactory {
       case 'Text':
         return _text(
           value: params['value'] ?? '',
+          textDirection: params['textDirection'],
           colorValue: params['colorValue'] ?? 0,
           fontSize: params['fontSize'] ?? 14.0,
           textAlign: params['textAlign'],
@@ -83,6 +86,17 @@ class WidgetFactory {
           width: params['width'],
           boxFit: params['boxFit'],
         );
+      case 'Button':
+        return _raisedButton(
+          callbackName: params['callbackName'],
+          topPadding: params['topPadding'] ?? 0.0,
+          rightPadding: params['rightPadding'] ?? 0.0,
+          bottomPadding: params['bottomPadding'] ?? 0.0,
+          leftPadding: params['leftPadding'] ?? 0.0,
+          child: params['child'] != null
+              ? _fromName(name: params['child']['name'], params: params['child']['params'])
+              : Container(),
+        );
     }
 
     // Gets to this line if name is
@@ -119,9 +133,10 @@ class WidgetFactory {
 
   //region ---------- Text ---------------
 
-  Text _text({String value, int colorValue, double fontSize, String textAlign}) {
+  Text _text({String value, int colorValue, double fontSize, String textAlign, String textDirection}) {
     return Text(
       value,
+      textDirection: EnumFactory.textDirection(textDirection),
       textAlign: EnumFactory.textAlign(textAlign),
       style: TextStyle(
         fontSize: fontSize,
@@ -218,6 +233,31 @@ class WidgetFactory {
 
   //endregion
 
+  //region ---------- RaisedButton -------
+
+  RaisedButton _raisedButton({
+    String callbackName,
+    double topPadding,
+    double rightPadding,
+    double bottomPadding,
+    double leftPadding,
+    Widget child,
+  }) {
+    Function callback = () {};
+
+    if (callbackName != null && callbackName.isNotEmpty) {
+      callback = () => ServiceProvider.pluginService.pluginChannel.invokeMethod('', callbackName);
+    }
+
+    return RaisedButton(
+      onPressed: callback,
+      padding: EdgeInsets.only(top: topPadding, right: rightPadding, bottom: bottomPadding, left: leftPadding),
+      child: child,
+    );
+  }
+
+  //endregion
+
   //region ---------- Image --------------
 
   Image _image({String source, double height, double width, String boxFit}) {
@@ -227,6 +267,6 @@ class WidgetFactory {
   //endregion
 
   List<Widget> _childrenFromName(List<Map> children) {
-    return children.map((child) => _fromName(name: child['name'], params: child['params'])).toList();
+    return (children ?? []).map((child) => _fromName(name: child['name'], params: child['params'])).toList();
   }
 }
