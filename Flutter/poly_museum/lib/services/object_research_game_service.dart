@@ -174,7 +174,7 @@ class ObjectResearchGameService {
             timerObject = ob;
             answerTimerObject = {s : snap.data[s]};
           }
-          if(!snap.data[s]["timerObjects"]["members"].keys.contains(globalUserName)){
+          if(snap.data[s]["timerObjects"]["members"].length > 0 && !snap.data[s]["timerObjects"]["members"].keys.contains(globalUserName)){
             hasAnsweredTimerObject = false;
           }
         }

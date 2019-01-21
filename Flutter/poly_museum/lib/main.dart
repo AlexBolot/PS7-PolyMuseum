@@ -39,7 +39,7 @@ class MyApp extends StatelessWidget {
           debugShowCheckedModeBanner: false,
           title: 'PolyMuseum',
           theme: globalTheme,
-          home: ProposalView(),//FrontView(title: 'PolyMuseum Menu'),
+          home: FrontView(title: 'PolyMuseum Menu'),
           routes: {
             '/FrontView': (context) => FrontView(title: 'PolyMuseum Menu'),
             '/GuideView': (context) => GuideView(title: 'PolyMuseum Menu'),

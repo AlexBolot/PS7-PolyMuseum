@@ -5,8 +5,8 @@ import 'package:poly_museum/app_builder.dart';
 String currentGroupID = "1";
 String globalBarcode = "";
 String globalUserGroup = "1";
-String globalUserTeam = "1";
-String globalUserName = "Paul";
+String globalUserTeam = "0";
+String globalUserName = "coco";
 
 ThemeData globalTheme = ThemeData();
 AppBuilder appBuilder;
