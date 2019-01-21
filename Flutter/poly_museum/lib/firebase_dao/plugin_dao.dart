@@ -6,12 +6,12 @@ class PluginDAO {
   Firestore _firestore = Firestore.instance;
 
   PluginDAO();
-
+  
   void insert(Plugin plugin) {
     DocumentReference pluginRef = _firestore
     .collection(DBStructure.plugins_collection)
     .document(plugin.getIdentifier());
-
+    
     pluginRef.setData({
         DBStructure.plugin_config_field : plugin.config,
         DBStructure.plugin_download_url_field : plugin.downloadUrl,
@@ -32,21 +32,5 @@ class PluginDAO {
           DBStructure.museum_plugins_reference_field : pluginRef
       });
     }
-  }
-
-  void delete(Plugin plugin) {
-    /*DocumentReference pluginsCollection = _firestore
-      .collection(DBStructure.plugins_collection);
-
-    QuerySnapshot museumPluginsCollection = await _firestore
-    .collection(DBStructure.museum_collection)
-    .document(DBStructure.test_museum_document)
-    .collection(DBStructure.museum_plugins_collection);
-    .getDocuments();
-
-    for (DocumentSnapshot doc : museumPluginsCollection) {
-      doc.
-    }
-    */
   }
 }

@@ -28,8 +28,8 @@ class ObjectResearchGameService {
   bool hasAnsweredTimerObject = false;
   dynamic answerTimerObject;
 
-  bool _gameStatusBegin;
-  bool _gameStatusEnd;
+  bool _gameStatusBegin = false;
+  bool _gameStatusEnd = false;
 
   bool get gameStatusBegin => _gameStatusBegin ?? false;
 
@@ -58,12 +58,14 @@ class ObjectResearchGameService {
   /// Indicates a game has begun in the corresponding userGroup
   ///
   void startGame(VoidCallback callback, userGroup) async {
+    if (! _gameStatusBegin) {
+       _startDateTime = new DateTime.now();
+    }
+
     await museumReference.collection("GroupesVisite").document("groupe$userGroup").updateData({
       'isFinished': false,
       'isStarted': true,
     });
-
-    _startDateTime = new DateTime.now();
   }
 
   ///

@@ -23,14 +23,12 @@ class MyApp extends StatelessWidget {
       ServiceProvider.pluginService.testStreamPluginsData();
     } else {
       ServiceProvider.groupService.streamGroups();
-
       PluginService pluginService = ServiceProvider.pluginService;
-
       pluginService.streamPluginsData().then((value) async {
         await pluginService.initPlugins();
         await pluginService.processThemePlugins();
-      });
-    }
+    });
+}
     appBuilder = AppBuilder(
       builder: (context) {
         return MaterialApp(
@@ -201,7 +199,9 @@ class _MyHomePageState extends State<MyHomePage> {
               Padding(
                 padding: const EdgeInsets.only(top: 8.0),
                 child: RaisedButton(
-                  color: Theme.of(context).primaryColor,
+                  color: Theme
+                      .of(context)
+                      .primaryColor,
                   textColor: Colors.grey[300],
                   onPressed: () => Navigator.pop(context),
                   child: Text('Valider'),

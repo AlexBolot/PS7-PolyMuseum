@@ -18,8 +18,10 @@ class Plugin {
   Plugin.fromSnapshot(DocumentSnapshot snap) {
     this.qualifiedName = snap.data['qualifiedName'];
     this.downloadUrl = snap.data['downloadUrl'];
-    this.pluginName = snap.data['pluginName'];
     this.type = snap.data['type'];
+    this.pluginName = snap.data['pluginName'];
+    this.config = snap.data['config'];
+    this.libelle = snap.data['libelle'];
   }
 
   Map<String, dynamic> toMap() {
