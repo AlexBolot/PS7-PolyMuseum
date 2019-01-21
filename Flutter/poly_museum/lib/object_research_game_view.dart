@@ -6,6 +6,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:poly_museum/global.dart';
 import 'package:poly_museum/model/objects.dart';
+import 'package:poly_museum/proposal_view.dart';
 import 'package:poly_museum/services/object_research_game_service.dart';
 import 'package:poly_museum/services/service_provider.dart';
 
@@ -45,14 +46,12 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
 
   @override
   Widget build(BuildContext context) {
-    WidgetsBinding.instance
-        .addPostFrameCallback((_) {
-      if(gameService.timerObject != null && gameService.gameStatusBegin && !gameService.hasAnsweredTimerObject ){
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (gameService.timerObject != null && gameService.gameStatusBegin && !gameService.hasAnsweredTimerObject) {
         print(gameService.timerObject.toString());
         displayObjectSentTeamMate();
       }
-    }
-    );
+    });
 
     return Scaffold(
       appBar: AppBar(title: Text("Jeu de recherche d'objet")),
@@ -60,7 +59,6 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
         child: new ListView(children: displayGameElements()),
       ),
     );
-
   }
 
   ///Method to display game elements (description, winning teams etc)
@@ -69,9 +67,9 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
       String winningTeam = gameService.winningTeam.toString();
       Card card = addNewCard("Partie terminée");
       Card card2;
-      if(winningTeam == '-1'){
+      if (winningTeam == '-1') {
         card2 = addNewCard("Aucune équipe n'a remporté le jeu");
-      }else{
+      } else {
         String winners = gameService.completeTeam[winningTeam].toString();
         if(winningTeam == globalUserTeam){
           card2 = addNewCard("Votre équipe a gagné ! Félicitations !");
@@ -85,7 +83,7 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
       seconds = seconds % 3600;
       int minutes = seconds ~/ 60;
       seconds = seconds % 60;
-      
+
       Card card3 = addNewCard("La partie à durée $hours:$minutes:$seconds");
 
       List<Widget> list = [];
@@ -140,8 +138,7 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
         this.barcode = 'Unknown error: $e';
       }
     } on FormatException {
-      this.barcode =
-          'null (User returned using the "back"-button before scanning anything. Result)';
+      this.barcode = 'null (User returned using the "back"-button before scanning anything. Result)';
     } catch (e) {
       this.barcode = 'Unknown error: $e';
     }
@@ -149,17 +146,22 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
     var keyObject;
     var correctObjectFound = false;
 
-    if (object.qrCode == this.barcode) {
-      objectFound = new List.from(object.discoveredByTeams);
-      objectFound.add(this.userTeam);
-      keyObject = object.dataBaseName;
-      correctObjectFound = true;
+    if(barcode == null) return;
+
+    bool result = await Navigator.of(context).push(MaterialPageRoute(builder: (context) => ProposalView(barcode)));
+
+    if (result != null && result == true) {
+      if (object.qrCode == this.barcode) {
+        objectFound = new List.from(object.discoveredByTeams);
+        objectFound.add(this.userTeam);
+        keyObject = object.dataBaseName;
+        correctObjectFound = true;
+      }
     }
 
     Future.delayed(new Duration(seconds: 1), () {
       if (correctObjectFound) {
-        gameService.teamFoundObject(
-            userGroup, keyObject, object.descriptionReference, objectFound);
+        gameService.teamFoundObject(userGroup, keyObject, object.descriptionReference, objectFound);
       }
       displayResult(correctObjectFound);
     });
@@ -168,8 +170,7 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
   ///Method used to change the color of a description when a object is found
   chooseColor(Objects object) {
     var color = Color.fromARGB(255, 255, 255, 255);
-    if (object.discoveredByTeams != null &&
-        object.discoveredByTeams.contains(userTeam)) {
+    if (object.discoveredByTeams != null && object.discoveredByTeams.contains(userTeam)) {
       color = Color.fromARGB(255, 50, 200, 50);
     }
     return color;
@@ -197,8 +198,7 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title:
-              Text("L'objet sélectionné à déjà été trouvé par un coéquipier !"),
+          title: Text("L'objet sélectionné à déjà été trouvé par un coéquipier !"),
           actions: <Widget>[
             FlatButton(
               onPressed: () => Navigator.of(context).pop(),
@@ -211,9 +211,9 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
   }
 
   void displayObjectSentTeamMate() {
-    if(picture == null && !loadingImage){
+    if (picture == null && !loadingImage) {
       loadImage(gameService.timerObject.qrCode);
-    }else {
+    } else {
       showDialog(
         context: context,
         builder: (context) {
@@ -227,19 +227,22 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
                     Navigator.of(context).pop();
                     gameService.updateTimerObjectResult(userGroup, globalUserTeam, userName, true);
                   },
-                  child: Text('Je valide',
-                    style: DefaultTextStyle.of(context).style.apply(color: Colors.green,fontSizeFactor: 0.5),
+                  child: Text(
+                    'Je valide',
+                    style: DefaultTextStyle.of(context).style.apply(color: Colors.green, fontSizeFactor: 0.5),
                   ),
                 ),
-              ), Center(
+              ),
+              Center(
                 child: FlatButton(
                   onPressed: () {
                     Navigator.of(context).pop();
                     gameService.updateTimerObjectResult(userGroup, globalUserTeam, userName, false);
                   },
-                    child: Text('Je refuse',
-                      style: DefaultTextStyle.of(context).style.apply(color: Colors.red,fontSizeFactor: 0.5),
-                    ),
+                  child: Text(
+                    'Je refuse',
+                    style: DefaultTextStyle.of(context).style.apply(color: Colors.red[800], fontSizeFactor: 0.5),
+                  ),
                 ),
               ),
             ],
@@ -292,8 +295,5 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
       width: size,
       height: size,
     );
-
   }
-
-
 }
