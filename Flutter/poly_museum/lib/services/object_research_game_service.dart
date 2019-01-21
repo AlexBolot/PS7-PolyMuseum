@@ -2,14 +2,12 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
 
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:poly_museum/global.dart';
 import 'package:poly_museum/model/objects.dart';
 import 'package:poly_museum/test_class.dart';
-
 
 class ObjectResearchGameService {
   final HttpClient _httpClient = HttpClient();
@@ -19,7 +17,7 @@ class ObjectResearchGameService {
   StreamSubscription<DocumentSnapshot> _teamsStream;
   StreamSubscription<DocumentSnapshot> _timerObjectsStream;
 
-  List<DocumentReference> teammates = [];
+  List<String> teammates = [];
   List<String> teamsGame = [];
   List<Objects> objectsGame = [];
   Map<Object, List<int>> objectsteams = {};
@@ -143,7 +141,7 @@ class ObjectResearchGameService {
   /// When a visitor receives an object to validate or not coming from another teammate
   /// He can choose to validate or not the object presented with the description
   ///
-  void updateTimerObjectResult(userGroup,teamNumber,userName,bool userResponse){
+  void updateTimerObjectResult(userGroup, teamNumber, userName, bool userResponse) {
     hasAnsweredTimerObject = true;
     answerTimerObject[teamNumber]["timerObjects"]["members"][userName] = userResponse;
     museumReference
@@ -169,12 +167,15 @@ class ObjectResearchGameService {
       timerObject = null;
       numberTeams = snap.data.length;
       for (String s in snap.data.keys) {
-        for(Objects ob in objectsGame){
-          if(snap.data[s]["timerObjects"]["objectRef"] == ob.descriptionReference && snap.data[s]["timerObjects"]["members"].length > 0 && snap.data[s]["timerObjects"]["members"].keys.contains(globalUserName) && s == globalUserTeam ){
+        for (Objects ob in objectsGame) {
+          if (snap.data[s]["timerObjects"]["objectRef"] == ob.descriptionReference &&
+              snap.data[s]["timerObjects"]["members"].length > 0 &&
+              snap.data[s]["timerObjects"]["members"].keys.contains(globalUserName) &&
+              s == globalUserTeam) {
             timerObject = ob;
-            answerTimerObject = {s : snap.data[s]};
+            answerTimerObject = {s: snap.data[s]};
           }
-          if(!snap.data[s]["timerObjects"]["members"].keys.contains(globalUserName)){
+          if (!snap.data[s]["timerObjects"]["members"].keys.contains(globalUserName)) {
             hasAnsweredTimerObject = false;
           }
         }
@@ -243,7 +244,7 @@ class ObjectResearchGameService {
     return null;
   }
 
-  Future getTeammates(String userGroup) async {
+  Future<List<String>> getTeammates(String userGroup) async {
     DocumentSnapshot snapshot = await museumReference
         .collection("GroupesVisite")
         .document("groupe$userGroup")
@@ -251,9 +252,68 @@ class ObjectResearchGameService {
         .document("Equipes")
         .get();
 
-    teammates = snapshot.data[globalUserTeam]['membres'].cast<DocumentReference>();
+    teammates = [];
+
+    for (DocumentReference doc in snapshot.data[globalUserTeam]['membres'].cast<DocumentReference>()) {
+      DocumentSnapshot snap = await doc.get();
+      teammates.add(snap.data['prenom']);
+    }
+
+    teammates.removeWhere((name) => name == globalUserName);
 
     return teammates;
+  }
+
+  Future addTimerObject(String userGroup, String code) async {
+    DocumentSnapshot snapshot = await museumReference
+        .collection("GroupesVisite")
+        .document("groupe$userGroup")
+        .collection("JeuRechercheObjet")
+        .document("Equipes")
+        .get();
+
+    Map memberChoices = {};
+    DocumentReference objectRef;
+
+    for (String name in teammates) {
+      memberChoices.putIfAbsent(name, () => null);
+    }
+
+    for (DocumentSnapshot doc in (await museumReference.collection('Objets').getDocuments()).documents) {
+      if (doc.data['barCode'] == code) {
+        objectRef = doc.reference;
+      }
+    }
+
+    await museumReference
+        .collection("GroupesVisite")
+        .document("groupe$userGroup")
+        .collection("JeuRechercheObjet")
+        .document("Equipes")
+        .updateData({
+      globalUserTeam: {
+        'membres': snapshot.data[globalUserTeam]['membres'],
+        'timerObjects': {
+          'members': memberChoices,
+          'objectRef': objectRef,
+        }
+      }
+    });
+  }
+
+  void listenTimerObjectReply(String userGroup, Function(Map) callback) {
+    museumReference
+        .collection("GroupesVisite")
+        .document("groupe$userGroup")
+        .collection("JeuRechercheObjet")
+        .document("Equipes")
+        .snapshots()
+        .listen((snapshot) {
+          var timerObjects = snapshot.data[globalUserTeam]['timerObjects'] ?? {};
+          var members = timerObjects['members'] ?? {};
+      Map<String, bool> map = (members ?? {}).cast<String, bool>();
+      callback(map);
+    });
   }
 
   void disposeObjectsDiscoveredStream() => _objectsDiscoveredStream?.cancel();

@@ -1,9 +1,8 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:barcode_scan/barcode_scan.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:poly_museum/circular_timer_image.dart';
 import 'package:poly_museum/global.dart';
 import 'package:poly_museum/services/service_provider.dart';
 
@@ -17,8 +16,14 @@ class ProposalView extends StatefulWidget {
 class _ProposalViewState extends State<ProposalView> {
   File picture;
   double value = 0;
+  double teamBonus = 0;
   bool loadingImage = false;
-  bool teammatesLoaded = false;
+  double maxValue = 10;
+
+  bool sendingAllowed = false;
+  bool requiresCancel = false;
+
+  Map<String, bool> teammatesNames = {};
 
   @override
   Widget build(BuildContext context) {
@@ -39,27 +44,61 @@ class _ProposalViewState extends State<ProposalView> {
                   padding: const EdgeInsets.all(8.0),
                   child: displayImage(),
                 ),
-                Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: RaisedButton(
-                        padding: EdgeInsets.symmetric(vertical: 16.0),
-                        child: Text('Envoyer à mon équipe', textAlign: TextAlign.center),
-                        color: Colors.green,
-                        onPressed: () => print('Valider'),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    children: <Widget>[
+                      Expanded(
+                        flex : 10,
+                        child: RaisedButton(
+                          elevation: sendingAllowed ? 4.0 : 0.0,
+                          padding: EdgeInsets.symmetric(vertical: 16.0),
+                          child: Text('Faire valider', textAlign: TextAlign.center),
+                          color: sendingAllowed ? Colors.green : Colors.grey[300],
+                          onPressed: () {
+                            sendingAllowed ? print('Valider') : print('Woah there not so fast');
+                          },
+                        ),
                       ),
-                    ),
-                    Expanded(
-                      child: RaisedButton(
-                        padding: EdgeInsets.symmetric(vertical: 16.0),
-                        child: Text('Annuler'),
-                        color: Colors.redAccent,
-                        onPressed: () => print('Annuler'),
+                      Expanded(child: Container()),
+                      Expanded(
+                        flex : 10,
+                        child: RaisedButton(
+                          elevation: 4.0,
+                          padding: EdgeInsets.symmetric(vertical: 16.0),
+                          child: Text('Annuler'),
+                          color: Colors.redAccent,
+                          onPressed: () => print('Annuler'),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-                displayTeammates(),
+                ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: teammatesNames.length,
+                  itemBuilder: (context, i) {
+                    String key = teammatesNames.keys.toList()[i];
+
+                    bool reply = teammatesNames[key];
+                    bool hasReply = reply != null;
+
+                    Icon thumbDown = Icon(Icons.thumb_down, color: Colors.red);
+                    Icon thumbUp = Icon(Icons.thumb_up, color: Colors.green);
+
+                    return Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Row(
+                          children: <Widget>[
+                            Expanded(child: Text(key, textAlign: TextAlign.center)),
+                            Expanded(child: hasReply ? (reply ? thumbUp : thumbDown) : Container()),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
               ],
             ),
           ),
@@ -68,24 +107,18 @@ class _ProposalViewState extends State<ProposalView> {
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.photo_camera),
         onPressed: () async {
+          teammatesNames.updateAll((key, old) => null);
+          value = 0;
+          teamBonus = 0;
           picture = null;
-          String barcode = await BarcodeScanner.scan();
-          loadImage(barcode);
-          loadTeammates();
-          setState(() => loadingImage = true);
+          sendingAllowed = false;
+          scanImage();
         },
       ),
     );
   }
 
-  void loadTeammates() async {
-    await ServiceProvider.gameService.getTeammates(globalUserGroup);
-    setState(() {
-      teammatesLoaded = true;
-    });
-  }
-
-  void loadImage(String code) async {
+  Future loadImage(String code) async {
     File file = await ServiceProvider.gameService.getImageFromCode(code);
     setState(() {
       picture = file;
@@ -101,35 +134,75 @@ class _ProposalViewState extends State<ProposalView> {
         width: size,
         height: size,
         padding: EdgeInsets.all(16.0),
-        child: CircularProgressIndicator(strokeWidth: 6.0),
+        child: CircularProgressIndicator(strokeWidth: 7.0),
       );
     }
 
     if (picture == null) {
-      return Container(
-        width: size,
-        height: size,
-      );
+      return Container(width: size, height: size);
     }
 
-    var timerImage = CircularTimerImage(image: picture, size: size);
-    timerImage.createState();
-    return timerImage;
+    return Container(
+      child: Stack(
+        alignment: Alignment(0, 0),
+        children: <Widget>[
+          Container(
+            width: size,
+            height: size,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              image: DecorationImage(
+                image: FileImage(picture),
+                fit: BoxFit.fill,
+              ),
+            ),
+          ),
+          Container(
+            width: size,
+            height: size,
+            child: CircularProgressIndicator(value: (value + teamBonus), strokeWidth: 7.0),
+          )
+        ],
+      ),
+    );
   }
 
-  Widget displayTeammates() {
-    List<DocumentReference> teammates = ServiceProvider.gameService.teammates;
+  Future scanImage() async {
+    // Trigger camera view for scan
+    String barcode = await BarcodeScanner.scan();
 
-    if (teammatesLoaded) {
-      return ListView.builder(
-        itemBuilder: (context, i) {
-          return Card(child: Text(teammates[i].documentID));
-        },
-        itemCount: teammates.length,
-        shrinkWrap: true,
-      );
-    }
-    else
-      return Container();
+    // Load the image of the item from firebase
+    await loadImage(barcode);
+
+    // Read teammates names
+    List<String> listNames = await ServiceProvider.gameService.getTeammates(globalUserGroup);
+
+    listNames.forEach((name) => teammatesNames.putIfAbsent(name, () => null));
+
+    await ServiceProvider.gameService.addTimerObject(globalUserGroup, barcode);
+
+    ServiceProvider.gameService.listenTimerObjectReply(globalUserGroup, (values) {
+      setState(() {
+        teammatesNames = values;
+        int negCount = teammatesNames.values.where((item) => item != null && item == false).length;
+        int posCount = teammatesNames.values.where((item) => item != null && item == true).length;
+        teamBonus = (posCount * 5.0 / maxValue);
+        print('$teamBonus');
+        requiresCancel = (negCount > teammatesNames.length / 2);
+      });
+    });
+
+    Timer.periodic(Duration(milliseconds: 10), (timer) {
+      setState(() {
+        if (value < 1)
+          value += 1 / (maxValue * 100);
+        else {
+          timer.cancel();
+          sendingAllowed = true;
+        }
+      });
+    });
+
+    setState(() {});
   }
 }
