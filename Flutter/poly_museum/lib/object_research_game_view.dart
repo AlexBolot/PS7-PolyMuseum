@@ -1,9 +1,12 @@
+import 'dart:io';
+
 import 'package:barcode_scan/barcode_scan.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:poly_museum/global.dart';
 import 'package:poly_museum/model/objects.dart';
+import 'package:poly_museum/proposal_view.dart';
 import 'package:poly_museum/services/object_research_game_service.dart';
 import 'package:poly_museum/services/service_provider.dart';
 
@@ -13,6 +16,8 @@ class ObjectResearchGameView extends StatefulWidget {
 }
 
 class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
+  File picture;
+  bool loadingImage = false;
   String barcode = globalBarcode;
   String userGroup = globalUserGroup;
   String userTeam = globalUserTeam;
@@ -27,6 +32,7 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
   @override
   void initState() {
     super.initState();
+    gameService.getTeammates(globalUserGroup);
     gameService.updateResearchGameDescriptions(_refresh, userGroup);
     gameService.updateGameStatus(_refresh, userGroup);
     //gameService.getFoundObjectInfo(, userGroup, userTeam, _refresh)
@@ -41,8 +47,15 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
 
   @override
   Widget build(BuildContext context) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (gameService.timerObject != null && gameService.gameStatusBegin && !gameService.hasAnsweredTimerObject) {
+        print(gameService.timerObject.toString());
+        displayObjectSentTeamMate();
+      }
+    });
+
     return Scaffold(
-      appBar: AppBar(title: Text('Descriptions View')),
+      appBar: AppBar(title: Text("Jeu de recherche d'objet")),
       body: Container(
         child: new ListView(children: displayGameElements()),
       ),
@@ -58,13 +71,24 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
       if (winningTeam == '-1') {
         card2 = addNewCard("Aucune équipe n'a remporté le jeu");
       } else {
-        card2 =
-            addNewCard("L'équipe vainqueur est l'équipe numéro $winningTeam");
+        String winners = gameService.completeTeam[winningTeam].toString();
+        if(winningTeam == globalUserTeam){
+          card2 = addNewCard("Votre équipe a gagné ! Félicitations !");
+        }else {
+          card2 = addNewCard(
+              "L'équipe vainqueur est l'équipe numéro $winningTeam, composé des membres $winners");
+        }
       }
+
+      String duration = gameService.gameDuration.toString();
+      duration = duration.split(".")[0];
+
+      Card card3 = addNewCard("La partie à durée $duration");
 
       List<Widget> list = [];
       list.add(card);
       list.add(card2);
+      list.add(card3);
       return list;
     } else {
       if (gameService.gameStatusBegin) {
@@ -114,7 +138,7 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
       }
     } on FormatException {
       this.barcode =
-      'null (User returned using the "back"-button before scanning anything. Result)';
+          'null (User returned using the "back"-button before scanning anything. Result)';
     } catch (e) {
       this.barcode = 'Unknown error: $e';
     }
@@ -122,13 +146,17 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
     var keyObject;
     var correctObjectFound = false;
 
-    if (object.qrCode == this.barcode) {
+    if(barcode == null) return;
+
+    bool result = await Navigator.of(context).push(MaterialPageRoute(builder: (context) => ProposalView(barcode)));
+
+    if (result != null && result == true) {if (object.qrCode == this.barcode) {
       membersTeams = new Map.from(object.userAndTeam);
       membersTeams.putIfAbsent(userName, () => userTeam);
       /*objectFound = new List.from(object.userAndTeam.values);
       objectFound.add(this.userTeam);*/
       keyObject = object.dataBaseName;
-      correctObjectFound = true;
+      correctObjectFound = true;}
     }
 
     Future.delayed(new Duration(seconds: 1), () {
@@ -143,8 +171,7 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
   ///Method used to change the color of a description when a object is found
   chooseColor(Objects object) {
     var color = Color.fromARGB(255, 255, 255, 255);
-    if (object.userAndTeam.isNotEmpty &&
-        object.userAndTeam.values.contains(userTeam)) {
+    if (object.userAndTeam.isNotEmpty && object.userAndTeam.values.contains(userTeam)) {
       color = Color.fromARGB(255, 50, 200, 50);
     }
     return color;
@@ -185,6 +212,48 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
     );
   }
 
+  void displayObjectSentTeamMate() {
+    if (picture == null && !loadingImage) {
+      loadImage(gameService.timerObject.qrCode);
+    } else {
+      showDialog(
+        context: context,
+        builder: (context) {
+          return new AlertDialog(
+            title: Text(gameService.timerObject.description),
+            content: displayImage(),
+            actions: <Widget>[
+              Center(
+                child: FlatButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    gameService.updateTimerObjectResult(userGroup, globalUserTeam, userName, true);
+                  },
+                  child: Text(
+                    'Je valide',
+                    style: DefaultTextStyle.of(context).style.apply(color: Colors.green, fontSizeFactor: 0.5),
+                  ),
+                ),
+              ),
+              Center(
+                child: FlatButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    gameService.updateTimerObjectResult(userGroup, globalUserTeam, userName, false);
+                  },
+                  child: Text(
+                    'Je refuse',
+                    style: DefaultTextStyle.of(context).style.apply(color: Colors.red[800], fontSizeFactor: 0.5),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      );
+    }
+  }
+
   Card addNewCard(String text) {
     return Card(
       margin: EdgeInsets.symmetric(horizontal: 38.0, vertical: 4.0),
@@ -206,5 +275,29 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
     return result
         ? "Bonne réponse ! Vous avez trouvé"
         : "Mauvaise réponse ! Continuez de chercher";
+  }
+
+  void loadImage(String code) async {
+    File file = await ServiceProvider.gameService.getImageFromCode(code);
+    setState(() {
+      picture = file;
+      loadingImage = true;
+    });
+  }
+
+  Widget displayImage() {
+    double size = 300.0;
+    if (picture != null && loadingImage) {
+      return Container(
+        width: size,
+        height: size,
+        padding: EdgeInsets.all(16.0),
+        child: Image.file(picture),
+      );
+    }
+    return Container(
+      width: size,
+      height: size,
+    );
   }
 }

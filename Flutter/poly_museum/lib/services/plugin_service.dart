@@ -48,25 +48,26 @@ class PluginService {
 
     for (DocumentSnapshot doc in querySnapshot.documents) {
       // Getting plugin file
-      if(!doc.data["activated"]) continue;
+      if (!doc.data["activated"]) continue;
 
       DocumentSnapshot ref = await doc.data["ref"].get();
 
       var plugin = Plugin.fromSnapshot(ref);
       _plugins.add(plugin);
-      print(_plugins);
       // Getting plugin config
 
-      _configRef = doc.reference.collection('config').document('current');
-      DocumentSnapshot config = await _configRef.get();
+      if (plugin.config) {
+        _configRef = doc.reference.collection('config').document('current');
+        DocumentSnapshot config = await _configRef.get();
 
-      Map<String, dynamic> configMap = {};
+        Map<String, dynamic> configMap = {};
 
-      for (String key in config.data.keys) {
-        configMap.putIfAbsent(key, () => config.data[key]);
+        for (String key in config.data.keys) {
+          configMap.putIfAbsent(key, () => config.data[key]);
+        }
+
+        _configs.putIfAbsent(plugin.type, () => configMap);
       }
-
-      _configs.putIfAbsent(plugin.type, () => configMap);
     }
   }
 
@@ -130,39 +131,53 @@ class PluginService {
     appBuilder.state.rebuild();
   }
 
-  void testPluginService() async {
+  // For testing purpose
+  Plugin plugin = null;
+  Plugin plugin2 = null;
+  
+  void setUpTest() {
+    changeMuseumTarget(DBStructure.test_museum_document);
+    
+    PluginDAO pluginDAO = new PluginDAO();
+    this.plugin = new Plugin(
+      'pa.ck.age.PluginClass',
+      'https://firebasestorage.googleapis.com/v0/b/polymuseum-ps7.appspot.com/o/Plugins%2Fplugin_foo-0.2.jar?alt=media&token=837d73c6-8267-4f6a-bb29-11ce95f90051',
+      'foo',
+      'plugin.jar',
+      false,
+      'plugin',
+      DBStructure.test_museum_document);
+
+    this.plugin2 = new Plugin(
+      'pa.ck.age.Plugin2Class',
+      'https://firebasestorage.googleapis.com/v0/b/polymuseum-ps7.appspot.com/o/Plugins%2Fplugin_foo-0.2.jar?alt=media&token=837d73c6-8267-4f6a-bb29-11ce95f90051',
+      'bar',
+      'plugin2.jar',
+      false,
+      'plugin2',
+      DBStructure.test_museum_document);
+    
+    pluginDAO.insert(plugin);
+    pluginDAO.insert(plugin2);
+  }
+  
+
+  void testStreamPluginsData() {
     TestCase(
       setUp : () {
-        changeMuseumTarget(DBStructure.test_museum_document);
-        
-        PluginDAO pluginDAO = new PluginDAO();
-        pluginDAO.insert(new Plugin(
-            'pa.ck.age.PluginClass',
-            'u.rl/plugin.jar',
-            'foo',
-            'plugin.jar',
-            false,
-            'plugin',
-            DBStructure.test_museum_document));
-        
-      pluginDAO.insert(new Plugin(
-            'pa.ck.age.Plugin2Class',
-            'u.rl/plugin2.jar',
-            'bar',
-            'plugin2.jar',
-            false,
-            'plugin2',
-            DBStructure.test_museum_document));
-      
-},
-      body : () async {
-        await streamPluginsData();
-        TestCase.assertSame(2, _plugins.length);
+        setUpTest();
+      },
+      body : () {
+        streamPluginsData().then((data) {
+            TestCase.assertSame(2, _plugins.length);
+        });
       },
       after : () {
-        print('AFTER');
+        
       }
     ).start();
   }
+
+
 }
 

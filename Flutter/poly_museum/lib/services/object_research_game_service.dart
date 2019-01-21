@@ -1,28 +1,44 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:ui';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:poly_museum/global.dart';
 import 'package:poly_museum/model/objects.dart';
 import 'package:poly_museum/test_class.dart';
 
 class ObjectResearchGameService {
+  final HttpClient _httpClient = HttpClient();
+
   StreamSubscription<QuerySnapshot> _objectsDiscoveredStream;
   StreamSubscription<DocumentSnapshot> _gameStatusStream;
   StreamSubscription<DocumentSnapshot> _teamsStream;
+  StreamSubscription<DocumentSnapshot> _timerObjectsStream;
 
+  List<String> teammates = [];
+  Map<String,List<String>> completeTeam = Map();
   List<String> teamsGame = [];
   List<Objects> objectsGame = [];
   Map<Object, List<int>> objectsteams = {};
   int numberTeams;
   int winningTeam = -1;
+  Objects timerObject;
+  bool hasAnsweredTimerObject = false;
+  dynamic answerTimerObject;
 
-  bool _gameStatusBegin;
-  bool _gameStatusEnd;
+  bool _gameStatusBegin = false;
+  bool _gameStatusEnd = false;
 
   bool get gameStatusBegin => _gameStatusBegin ?? false;
 
   bool get gameStatusEnd => _gameStatusEnd ?? false;
+
+  DateTime _startDateTime;
+  DateTime _endDateTime;
+
+  Duration get gameDuration => _gameStatusEnd ? _endDateTime.difference(_startDateTime) : null;
 
   ///
   /// This method streams the values from game status, whether it is began or finished
@@ -45,8 +61,12 @@ class ObjectResearchGameService {
   ///
   /// Indicates a game has begun in the corresponding userGroup
   ///
-  void startGame(VoidCallback callback, userGroup) {
-    museumReference
+  void startGame(VoidCallback callback, userGroup) async {
+    if (! _gameStatusBegin) {
+       _startDateTime = new DateTime.now();
+    }
+
+    await museumReference
         .collection("GroupesVisite")
         .document("groupe$userGroup")
         .updateData({
@@ -58,14 +78,13 @@ class ObjectResearchGameService {
   ///
   /// Indicates a game is finished in the corresponding userGroup
   ///
-  void endGame(VoidCallback callback, userGroup) {
-    museumReference
-        .collection("GroupesVisite")
-        .document("groupe$userGroup")
-        .updateData({
+  void endGame(VoidCallback callback, userGroup) async {
+    await museumReference.collection("GroupesVisite").document("groupe$userGroup").updateData({
       'isFinished': true,
       'isStarted': false,
     });
+
+    _endDateTime = new DateTime.now();
   }
 
   ///
@@ -82,6 +101,9 @@ class ObjectResearchGameService {
         .listen((data) async {
       objectsGame = List();
       for (DocumentSnapshot doc in data.documents) {
+        // The if statement below ensures that we get the elements from the "Object" documents,
+        // to add the right objects in @objectGame list and not something else.
+        // Problem : if the "objet1" is deleted from the DB, the list can't add anything
         if (doc.data.keys.contains("objet1")) {
           //key= objet1,
           Future iterateMapEntry(key, value) async {
@@ -98,12 +120,19 @@ class ObjectResearchGameService {
                   ifAbsent: () => v[i]["equipeID"]);
             }
             objectsGame.add(new Objects(
-                value["descriptionRef"],
+              value["descriptionRef"],
+              ref.data["description"],
+              ref.data["barCode"],
+              ref.data['downloadUrl'],
+              teamFoundObject,
+              key,
+            ));
+            /*    value["descriptionRef"],
                 ref.data["description"],
                 ref.data["barCode"],
                 userAndTeams,
                 key,
-                ref.data["nom"]));
+                ref.data["nom"]));*/
           }
 
           for (String s in doc.data.keys) {
@@ -114,9 +143,9 @@ class ObjectResearchGameService {
       if (numberTeams != null) {
         winningTeam = checkEndGame();
       }
+      getTimerObject(userGroup, () {});
       callback();
     });
-    getTeamNumber(userGroup, () {});
   }
 
   ///
@@ -138,18 +167,48 @@ class ObjectResearchGameService {
   }
 
   ///
-  /// Updates the number of teams present in the game
+  /// When a visitor receives an object to validate or not coming from another teammate
+  /// He can choose to validate or not the object presented with the description
   ///
-  void getTeamNumber(userGroup, VoidCallback callback) {
-    StreamSubscription<DocumentSnapshot> teams;
-    teams = museumReference
+  void updateTimerObjectResult(userGroup, teamNumber, userName, bool userResponse) {
+    hasAnsweredTimerObject = true;
+    answerTimerObject[teamNumber]["timerObjects"]["members"][userName] = userResponse;
+    museumReference
+        .collection("GroupesVisite")
+        .document("groupe$userGroup")
+        .collection("JeuRechercheObjet")
+        .document("Equipes")
+        .updateData(answerTimerObject);
+  }
+
+  ///
+  /// Gets the object sent by a visitor present in the same group
+  /// Also Updates the number of teams present in the game
+  ///
+  void getTimerObject(userGroup, VoidCallback callback) {
+    _timerObjectsStream = museumReference
         .collection("GroupesVisite")
         .document("groupe$userGroup")
         .collection("JeuRechercheObjet")
         .document("Equipes")
         .snapshots()
         .listen((snap) {
+      timerObject = null;
       numberTeams = snap.data.length;
+      for (String s in snap.data.keys) {
+        for (Objects ob in objectsGame) {
+          if (snap.data[s]["timerObjects"]["objectRef"] == ob.descriptionReference &&
+              snap.data[s]["timerObjects"]["members"].length > 0 &&
+              snap.data[s]["timerObjects"]["members"].keys.contains(globalUserName) &&
+              s == globalUserTeam) {
+            timerObject = ob;
+            answerTimerObject = {s: snap.data[s]};
+          }
+          if (snap.data[s]["timerObjects"]["members"].length > 0 && !snap.data[s]["timerObjects"]["members"].keys.contains(globalUserName)) {
+            hasAnsweredTimerObject = false;
+          }
+        }
+      }
       callback();
     });
   }
@@ -220,13 +279,120 @@ class ObjectResearchGameService {
     return result;
   }
 
+  Future<File> getImageFromCode(String code) async {
+    QuerySnapshot querySnapshot = await museumReference.collection('Objets').getDocuments();
+
+    for (DocumentSnapshot doc in querySnapshot.documents) {
+      if (doc.data['barCode'] == code) {
+        var request = await _httpClient.getUrl(Uri.parse(doc.data['downloadUrl']));
+        var response = await request.close();
+        var bytes = await consolidateHttpClientResponseBytes(response);
+        String dir = (await getTemporaryDirectory()).path;
+        File file = new File('$dir/$code');
+
+        return await file.writeAsBytes(bytes);
+      }
+    }
+
+    return null;
+  }
+
+  Future<List<String>> getTeammates(String userGroup) async {
+    DocumentSnapshot snapshot = await museumReference
+        .collection("GroupesVisite")
+        .document("groupe$userGroup")
+        .collection("JeuRechercheObjet")
+        .document("Equipes")
+        .get();
+
+    teammates = [];
+    completeTeam = Map();
+
+    for(var team in snapshot.data.keys){
+      List<String> members = [];
+      for (DocumentReference doc in snapshot.data[team]['membres'].cast<DocumentReference>()) {
+        DocumentSnapshot snap = await doc.get();
+        members.add(snap.data['prenom']);
+        if(team == globalUserTeam){
+          teammates.add(snap.data['prenom']);
+        }
+      }
+      completeTeam.putIfAbsent(team, () => members);
+    }
+
+    teammates.removeWhere((name) => name == globalUserName);
+
+    return teammates;
+  }
+
+  Future addTimerObject(String userGroup, String code) async {
+    DocumentSnapshot snapshot = await museumReference
+        .collection("GroupesVisite")
+        .document("groupe$userGroup")
+        .collection("JeuRechercheObjet")
+        .document("Equipes")
+        .get();
+
+    Map memberChoices = {};
+    DocumentReference objectRef;
+
+    for (String name in teammates) {
+      memberChoices.putIfAbsent(name, () => null);
+    }
+
+    for (DocumentSnapshot doc in (await museumReference.collection('Objets').getDocuments()).documents) {
+      if (doc.data['barCode'] == code) {
+        objectRef = doc.reference;
+      }
+    }
+
+    await museumReference
+        .collection("GroupesVisite")
+        .document("groupe$userGroup")
+        .collection("JeuRechercheObjet")
+        .document("Equipes")
+        .updateData({
+      globalUserTeam: {
+        'membres': snapshot.data[globalUserTeam]['membres'],
+        'timerObjects': {
+          'members': memberChoices,
+          'objectRef': objectRef,
+        }
+      }
+    });
+  }
+
+  void listenTimerObjectReply(String userGroup, [Function(Map) callback]) {
+    museumReference
+        .collection("GroupesVisite")
+        .document("groupe$userGroup")
+        .collection("JeuRechercheObjet")
+        .document("Equipes")
+        .snapshots()
+        .listen((snapshot) {
+          var timerObjects;
+          var members;
+          if(snapshot.data != null){
+             timerObjects = snapshot.data[globalUserTeam]['timerObjects'] ?? {};
+             members = timerObjects['members'] ?? {};
+          }
+      Map<String, bool> map = (members ?? {}).cast<String, bool>();
+      if(callback != null) {
+        callback(map);
+      }
+    });
+  }
+
   void disposeObjectsDiscoveredStream() => _objectsDiscoveredStream?.cancel();
 
   void disposeGameStatusStream() => _gameStatusStream?.cancel();
 
   void disposeTeamsStream() => _teamsStream?.cancel();
 
+  void disposeTimerObjectsStream() => _timerObjectsStream?.cancel();
+
   testGameService() {
+
     changeMuseumTarget("NiceTest");
 
     TestCase(
@@ -245,7 +411,7 @@ class ObjectResearchGameService {
     TestCase(
       name: "Get Team Number",
       body: () async {
-        getTeamNumber("1", () {
+        getTimerObject("1", () {
           TestCase.assertSame(numberTeams, 3);
         });
       },
