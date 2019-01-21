@@ -60,13 +60,10 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
         card2 = addNewCard("L'équipe vainqueur est l'équipe numéro $winningTeam");
       }
 
-      int seconds = gameService.gameDuration.inSeconds;
-      int hours = seconds ~/ 3600;
-      seconds = seconds % 3600;
-      int minutes = seconds ~/ 60;
-      seconds = seconds % 60;
-      
-      Card card3 = addNewCard("La partie à durée $hours:$minutes:$seconds");
+      String duration = gameService.gameDuration.toString();
+      duration = duration.split(".")[0];
+
+      Card card3 = addNewCard("La partie à durée $duration");
 
       List<Widget> list = [];
       list.add(card);

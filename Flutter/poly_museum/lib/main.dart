@@ -15,6 +15,7 @@ bool testing = false;
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    changeMuseumTarget('NiceTest');
     if (testing) {
       ServiceProvider.gameService.testGameService();
       ServiceProvider.groupService.testGroupService();
