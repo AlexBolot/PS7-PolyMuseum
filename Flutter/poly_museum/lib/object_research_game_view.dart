@@ -211,8 +211,6 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
       showDialog(
         context: context,
         builder: (context) {
-          print("laa");
-          print(gameService.answerTimerObject["0"]["timerObjects"]["members"]["Pauline"]);
           return new AlertDialog(
             title: Text(gameService.timerObject.description),
             content: displayImage(),
