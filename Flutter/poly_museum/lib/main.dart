@@ -10,19 +10,17 @@ import 'package:poly_museum/services/plugin_service.dart';
 import 'package:poly_museum/services/service_provider.dart';
 import 'app_builder.dart';
 
-
 void main() => runApp(MyApp());
 
-bool testing = true;
+bool testing = false;
 
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (testing) {
-
-      //ServiceProvider.gameService.testGameService();
-      //ServiceProvider.groupService.testGroupService();
-      //ServiceProvider.pluginService.testStreamPluginsData();
+      ServiceProvider.gameService.testGameService();
+      ServiceProvider.groupService.testGroupService();
+      ServiceProvider.pluginService.testStreamPluginsData();
     } else {
       ServiceProvider.groupService.streamGroups();
 
@@ -162,8 +160,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     controller: nameController,
                     textCapitalization: TextCapitalization.words,
                     style: TextStyle(fontSize: 20.0, color: Colors.black),
-                    decoration: InputDecoration(
-                        hintText: 'Nom au sein du groupe'),
+                    decoration: InputDecoration(hintText: 'Nom au sein du groupe'),
                   ),
                   TextFormField(
                     controller: codeController,
@@ -174,9 +171,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   Padding(
                     padding: const EdgeInsets.only(top: 8.0),
                     child: RaisedButton(
-                      color: Theme
-                          .of(context)
-                          .primaryColor,
+                      color: Theme.of(context).primaryColor,
                       textColor: Colors.grey[300],
                       onPressed: () => Navigator.pop(context),
                       child: Text('Valider'),
@@ -193,10 +188,8 @@ class _MyHomePageState extends State<MyHomePage> {
     String name = nameController.text.trim();
     String code = codeController.text.trim();
 
-    if (name != "" && code != "") {
+    if (name.isNotEmpty && code.isNotEmpty) {
       ServiceProvider.groupService.addMemberToGroup(name, code);
-    }
-    else if (code == "E84KD") {
       Navigator.of(context).pushNamed('/VisitorView');
     } else {
       await showDialog<String>(
@@ -208,9 +201,7 @@ class _MyHomePageState extends State<MyHomePage> {
               Padding(
                 padding: const EdgeInsets.only(top: 8.0),
                 child: RaisedButton(
-                  color: Theme
-                      .of(context)
-                      .primaryColor,
+                  color: Theme.of(context).primaryColor,
                   textColor: Colors.grey[300],
                   onPressed: () => Navigator.pop(context),
                   child: Text('Valider'),
