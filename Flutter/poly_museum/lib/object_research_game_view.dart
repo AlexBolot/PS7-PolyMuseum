@@ -31,9 +31,9 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
   @override
   void initState() {
     super.initState();
+    gameService.getTeammates(globalUserGroup);
     gameService.updateResearchGameDescriptions(_refresh, userGroup);
     gameService.updateGameStatus(_refresh, userGroup);
-
   }
 
   @override
@@ -72,7 +72,13 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
       if(winningTeam == '-1'){
         card2 = addNewCard("Aucune équipe n'a remporté le jeu");
       }else{
-        card2 = addNewCard("L'équipe vainqueur est l'équipe numéro $winningTeam");
+        String winners = gameService.completeTeam[winningTeam].toString();
+        if(winningTeam == globalUserTeam){
+          card2 = addNewCard("Votre équipe a gagné ! Félicitations !");
+        }else {
+          card2 = addNewCard(
+              "L'équipe vainqueur est l'équipe numéro $winningTeam, composé des membres $winners");
+        }
       }
       int seconds = gameService.gameDuration.inSeconds;
       int hours = seconds ~/ 3600;

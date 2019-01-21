@@ -18,6 +18,7 @@ class ObjectResearchGameService {
   StreamSubscription<DocumentSnapshot> _timerObjectsStream;
 
   List<String> teammates = [];
+  Map<String,List<String>> completeTeam = Map();
   List<String> teamsGame = [];
   List<Objects> objectsGame = [];
   Map<Object, List<int>> objectsteams = {};
@@ -253,10 +254,18 @@ class ObjectResearchGameService {
         .get();
 
     teammates = [];
+    completeTeam = Map();
 
-    for (DocumentReference doc in snapshot.data[globalUserTeam]['membres'].cast<DocumentReference>()) {
-      DocumentSnapshot snap = await doc.get();
-      teammates.add(snap.data['prenom']);
+    for(var team in snapshot.data.keys){
+      List<String> members = [];
+      for (DocumentReference doc in snapshot.data[team]['membres'].cast<DocumentReference>()) {
+        DocumentSnapshot snap = await doc.get();
+        members.add(snap.data['prenom']);
+        if(team == globalUserTeam){
+          teammates.add(snap.data['prenom']);
+        }
+      }
+      completeTeam.putIfAbsent(team, () => members);
     }
 
     teammates.removeWhere((name) => name == globalUserName);
@@ -301,7 +310,7 @@ class ObjectResearchGameService {
     });
   }
 
-  void listenTimerObjectReply(String userGroup, Function(Map) callback) {
+  void listenTimerObjectReply(String userGroup, [Function(Map) callback]) {
     museumReference
         .collection("GroupesVisite")
         .document("groupe$userGroup")
@@ -309,10 +318,16 @@ class ObjectResearchGameService {
         .document("Equipes")
         .snapshots()
         .listen((snapshot) {
-          var timerObjects = snapshot.data[globalUserTeam]['timerObjects'] ?? {};
-          var members = timerObjects['members'] ?? {};
+          var timerObjects;
+          var members;
+          if(snapshot.data != null){
+             timerObjects = snapshot.data[globalUserTeam]['timerObjects'] ?? {};
+             members = timerObjects['members'] ?? {};
+          }
       Map<String, bool> map = (members ?? {}).cast<String, bool>();
-      callback(map);
+      if(callback != null) {
+        callback(map);
+      }
     });
   }
 
