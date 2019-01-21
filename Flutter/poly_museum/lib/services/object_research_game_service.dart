@@ -35,8 +35,8 @@ class ObjectResearchGameService {
 
   bool get gameStatusEnd => _gameStatusEnd ?? false;
 
-  DateTime _startDateTime = null;
-  DateTime _endDateTime = null;
+  DateTime _startDateTime;
+  DateTime _endDateTime;
 
   Duration get gameDuration => _gameStatusEnd ? _endDateTime.difference(_startDateTime) : null;
 

@@ -194,7 +194,7 @@ class _MyHomePageState extends State<MyHomePage> {
         context: context,
         builder: (BuildContext context) {
           return SimpleDialog(
-            title: const Text("Le groupe n'existe pas, rééssayez"),
+            title: const Text("Le groupe n'existe pas ou aucun nom n'a été entré, rééssayez"),
             children: <Widget>[
               Padding(
                 padding: const EdgeInsets.only(top: 8.0),
