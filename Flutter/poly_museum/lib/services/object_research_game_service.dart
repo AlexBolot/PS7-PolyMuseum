@@ -35,10 +35,19 @@ class ObjectResearchGameService {
 
   bool get gameStatusEnd => _gameStatusEnd ?? false;
 
-  DateTime _startDateTime;
-  DateTime _endDateTime;
+  DocumentSnapshot _timestampSnapshot = null;
+  DateTime _startTimestamp = null;
+  DateTime _endTimestamp = null;
 
-  Duration get gameDuration => _gameStatusEnd ? _endDateTime.difference(_startDateTime) : null;
+  DateTime get startTimestamp => _startTimestamp;
+  DateTime get endTimestamp => _endTimestamp;
+
+  Future<void> fetchTimestamp(userGroup) async {
+    DocumentSnapshot snapshot = await museumReference.collection("GroupesVisite").document("groupe$userGroup").get();
+
+    _startTimestamp = snapshot.data['startTimestamp'];
+    _endTimestamp = snapshot.data['endTimestamp'];
+  }
 
   ///
   /// This method streams the values from game status, whether it is began or finished
@@ -59,7 +68,9 @@ class ObjectResearchGameService {
   ///
   void startGame(VoidCallback callback, userGroup) async {
     if (! _gameStatusBegin) {
-       _startDateTime = new DateTime.now();
+      museumReference.collection("GroupesVisite").document("groupe$userGroup").updateData({
+         'startTimestamp': FieldValue.serverTimestamp()
+       });
     }
 
     await museumReference.collection("GroupesVisite").document("groupe$userGroup").updateData({
@@ -77,7 +88,9 @@ class ObjectResearchGameService {
       'isStarted': false,
     });
 
-    _endDateTime = new DateTime.now();
+    await museumReference.collection("GroupesVisite").document("groupe$userGroup").updateData({
+      'endTimestamp': FieldValue.serverTimestamp()
+    });
   }
 
   ///

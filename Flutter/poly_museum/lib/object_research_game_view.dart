@@ -22,6 +22,7 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
   String userGroup = globalUserGroup;
   String userTeam = globalUserTeam;
   String userName = globalUserName;
+  Duration gameDuration = null;
 
   ObjectResearchGameService gameService = ServiceProvider.gameService;
 
@@ -62,7 +63,7 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
   }
 
   ///Method to display game elements (description, winning teams etc)
-  displayGameElements() {
+  displayGameElements () {
     if (gameService.gameStatusEnd) {
       String winningTeam = gameService.winningTeam.toString();
       Card card = addNewCard("Partie terminée");
@@ -79,15 +80,26 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
         }
       }
 
-      String duration = gameService.gameDuration.toString();
-      duration = duration.split(".")[0];
 
-      Card card3 = addNewCard("La partie à durée $duration");
+
+      if (gameService.gameStatusEnd) {
+        gameService.fetchTimestamp(userGroup).then((future) {
+          this.gameDuration = gameService.endTimestamp.difference(gameService.startTimestamp);
+
+          _refresh();
+        });
+      }
 
       List<Widget> list = [];
       list.add(card);
       list.add(card2);
-      list.add(card3);
+cd
+      if (gameDuration != null && gameService.gameStatusEnd) {
+        String durationStr = gameDuration.toString().split(".")[0];
+        Card card3 = addNewCard("La partie à durée $durationStr");
+        list.add(card3);
+      }
+
       return list;
     } else {
       if (gameService.gameStatusBegin) {
