@@ -10,7 +10,6 @@ import 'package:poly_museum/services/service_provider.dart';
 import 'package:poly_museum/visitor_home_page.dart';
 import 'app_builder.dart';
 
-
 void main() => runApp(MyApp());
 
 bool testing = false;
@@ -25,9 +24,7 @@ class MyApp extends StatelessWidget {
     } else {
 
       ServiceProvider.groupService.streamGroups();
-
       PluginService pluginService = ServiceProvider.pluginService;
-
       pluginService.streamPluginsData().then((value) async {
         await pluginService.initPlugins();
         await pluginService.processThemePlugins();

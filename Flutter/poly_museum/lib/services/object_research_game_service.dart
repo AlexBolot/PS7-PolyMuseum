@@ -15,16 +15,21 @@ class ObjectResearchGameService {
   StreamSubscription<QuerySnapshot> _objectsDiscoveredStream;
   StreamSubscription<DocumentSnapshot> _gameStatusStream;
   StreamSubscription<DocumentSnapshot> _teamsStream;
+  StreamSubscription<DocumentSnapshot> _timerObjectsStream;
 
-  List<DocumentReference> teammates = [];
+  List<String> teammates = [];
+  Map<String,List<String>> completeTeam = Map();
   List<String> teamsGame = [];
   List<Objects> objectsGame = [];
   Map<Object, List<int>> objectsteams = {};
   int numberTeams;
   int winningTeam = -1;
+  Objects timerObject;
+  bool hasAnsweredTimerObject = false;
+  dynamic answerTimerObject;
 
-  bool _gameStatusBegin;
-  bool _gameStatusEnd;
+  bool _gameStatusBegin = false;
+  bool _gameStatusEnd = false;
 
   bool get gameStatusBegin => _gameStatusBegin ?? false;
 
@@ -53,12 +58,14 @@ class ObjectResearchGameService {
   /// Indicates a game has begun in the corresponding userGroup
   ///
   void startGame(VoidCallback callback, userGroup) async {
+    if (! _gameStatusBegin) {
+       _startDateTime = new DateTime.now();
+    }
+
     await museumReference.collection("GroupesVisite").document("groupe$userGroup").updateData({
       'isFinished': false,
       'isStarted': true,
     });
-
-    _startDateTime = new DateTime.now();
   }
 
   ///
@@ -113,9 +120,9 @@ class ObjectResearchGameService {
       if (numberTeams != null) {
         winningTeam = checkEndGame();
       }
+      getTimerObject(userGroup, () {});
       callback();
     });
-    getTeamNumber(userGroup, () {});
   }
 
   ///
@@ -134,17 +141,48 @@ class ObjectResearchGameService {
   }
 
   ///
-  /// Updates the number of teams present in the game
+  /// When a visitor receives an object to validate or not coming from another teammate
+  /// He can choose to validate or not the object presented with the description
   ///
-  void getTeamNumber(userGroup, VoidCallback callback) {
+  void updateTimerObjectResult(userGroup, teamNumber, userName, bool userResponse) {
+    hasAnsweredTimerObject = true;
+    answerTimerObject[teamNumber]["timerObjects"]["members"][userName] = userResponse;
     museumReference
+        .collection("GroupesVisite")
+        .document("groupe$userGroup")
+        .collection("JeuRechercheObjet")
+        .document("Equipes")
+        .updateData(answerTimerObject);
+  }
+
+  ///
+  /// Gets the object sent by a visitor present in the same group
+  /// Also Updates the number of teams present in the game
+  ///
+  void getTimerObject(userGroup, VoidCallback callback) {
+    _timerObjectsStream = museumReference
         .collection("GroupesVisite")
         .document("groupe$userGroup")
         .collection("JeuRechercheObjet")
         .document("Equipes")
         .snapshots()
         .listen((snap) {
+      timerObject = null;
       numberTeams = snap.data.length;
+      for (String s in snap.data.keys) {
+        for (Objects ob in objectsGame) {
+          if (snap.data[s]["timerObjects"]["objectRef"] == ob.descriptionReference &&
+              snap.data[s]["timerObjects"]["members"].length > 0 &&
+              snap.data[s]["timerObjects"]["members"].keys.contains(globalUserName) &&
+              s == globalUserTeam) {
+            timerObject = ob;
+            answerTimerObject = {s: snap.data[s]};
+          }
+          if (snap.data[s]["timerObjects"]["members"].length > 0 && !snap.data[s]["timerObjects"]["members"].keys.contains(globalUserName)) {
+            hasAnsweredTimerObject = false;
+          }
+        }
+      }
       callback();
     });
   }
@@ -209,7 +247,7 @@ class ObjectResearchGameService {
     return null;
   }
 
-  Future getTeammates(String userGroup) async {
+  Future<List<String>> getTeammates(String userGroup) async {
     DocumentSnapshot snapshot = await museumReference
         .collection("GroupesVisite")
         .document("groupe$userGroup")
@@ -217,9 +255,82 @@ class ObjectResearchGameService {
         .document("Equipes")
         .get();
 
-    teammates = snapshot.data[globalUserTeam]['membres'].cast<DocumentReference>();
+    teammates = [];
+    completeTeam = Map();
+
+    for(var team in snapshot.data.keys){
+      List<String> members = [];
+      for (DocumentReference doc in snapshot.data[team]['membres'].cast<DocumentReference>()) {
+        DocumentSnapshot snap = await doc.get();
+        members.add(snap.data['prenom']);
+        if(team == globalUserTeam){
+          teammates.add(snap.data['prenom']);
+        }
+      }
+      completeTeam.putIfAbsent(team, () => members);
+    }
+
+    teammates.removeWhere((name) => name == globalUserName);
 
     return teammates;
+  }
+
+  Future addTimerObject(String userGroup, String code) async {
+    DocumentSnapshot snapshot = await museumReference
+        .collection("GroupesVisite")
+        .document("groupe$userGroup")
+        .collection("JeuRechercheObjet")
+        .document("Equipes")
+        .get();
+
+    Map memberChoices = {};
+    DocumentReference objectRef;
+
+    for (String name in teammates) {
+      memberChoices.putIfAbsent(name, () => null);
+    }
+
+    for (DocumentSnapshot doc in (await museumReference.collection('Objets').getDocuments()).documents) {
+      if (doc.data['barCode'] == code) {
+        objectRef = doc.reference;
+      }
+    }
+
+    await museumReference
+        .collection("GroupesVisite")
+        .document("groupe$userGroup")
+        .collection("JeuRechercheObjet")
+        .document("Equipes")
+        .updateData({
+      globalUserTeam: {
+        'membres': snapshot.data[globalUserTeam]['membres'],
+        'timerObjects': {
+          'members': memberChoices,
+          'objectRef': objectRef,
+        }
+      }
+    });
+  }
+
+  void listenTimerObjectReply(String userGroup, [Function(Map) callback]) {
+    museumReference
+        .collection("GroupesVisite")
+        .document("groupe$userGroup")
+        .collection("JeuRechercheObjet")
+        .document("Equipes")
+        .snapshots()
+        .listen((snapshot) {
+          var timerObjects;
+          var members;
+          if(snapshot.data != null){
+             timerObjects = snapshot.data[globalUserTeam]['timerObjects'] ?? {};
+             members = timerObjects['members'] ?? {};
+          }
+      Map<String, bool> map = (members ?? {}).cast<String, bool>();
+      if(callback != null) {
+        callback(map);
+      }
+    });
   }
 
   void disposeObjectsDiscoveredStream() => _objectsDiscoveredStream?.cancel();
@@ -227,6 +338,8 @@ class ObjectResearchGameService {
   void disposeGameStatusStream() => _gameStatusStream?.cancel();
 
   void disposeTeamsStream() => _teamsStream?.cancel();
+
+  void disposeTimerObjectsStream() => _timerObjectsStream?.cancel();
 
   testGameService() {
     changeMuseumTarget("NiceTest");
@@ -247,7 +360,7 @@ class ObjectResearchGameService {
     TestCase(
       name: "Get Team Number",
       body: () async {
-        getTeamNumber("1", () {
+        getTimerObject("1", () {
           TestCase.assertSame(numberTeams, 3);
         });
       },

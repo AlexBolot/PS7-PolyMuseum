@@ -1,14 +1,16 @@
+import 'dart:async';
 import 'dart:io';
 
-import 'package:barcode_scan/barcode_scan.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:poly_museum/circular_timer_image.dart';
 import 'package:poly_museum/global.dart';
 import 'package:poly_museum/services/service_provider.dart';
 
 class ProposalView extends StatefulWidget {
   static const String path = '/ProposalView';
+
+  final String code;
+
+  ProposalView(this.code);
 
   @override
   _ProposalViewState createState() => _ProposalViewState();
@@ -17,8 +19,54 @@ class ProposalView extends StatefulWidget {
 class _ProposalViewState extends State<ProposalView> {
   File picture;
   double value = 0;
+  double teamBonus = 0;
   bool loadingImage = false;
-  bool teammatesLoaded = false;
+  double maxValue = 20;
+
+  bool sendingAllowed = false;
+  bool requiresCancel = false;
+
+  Map<String, bool> teammatesNames = {};
+
+  @override
+  void initState() {
+    super.initState();
+    asyncInitState();
+  }
+
+  asyncInitState() async {
+    await loadImage(widget.code);
+
+    List<String> listNames = await ServiceProvider.gameService.getTeammates(globalUserGroup);
+
+    listNames.forEach((name) => teammatesNames.putIfAbsent(name, () => null));
+
+    await ServiceProvider.gameService.addTimerObject(globalUserGroup, widget.code);
+
+    ServiceProvider.gameService.listenTimerObjectReply(globalUserGroup, (values) {
+      setState(() {
+        teammatesNames = values;
+        int negCount = teammatesNames.values.where((item) => item != null && item == false).length;
+        int posCount = teammatesNames.values.where((item) => item != null && item == true).length;
+        teamBonus = (posCount * 5.0 / maxValue);
+        print('$teamBonus');
+        requiresCancel = (negCount > teammatesNames.length / 2);
+      });
+    });
+
+    Timer.periodic(Duration(milliseconds: 10), (timer) {
+      setState(() {
+        if (value < 1)
+          value += 1 / (maxValue * 100);
+        else {
+          timer.cancel();
+          sendingAllowed = true;
+        }
+      });
+    });
+
+    setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,65 +75,80 @@ class _ProposalViewState extends State<ProposalView> {
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        color: Colors.black38,
-        child: Center(
-          child: Card(
-            margin: EdgeInsets.symmetric(horizontal: 32.0),
-            elevation: 4.0,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: displayImage(),
-                ),
-                Row(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: displayImage(),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
                   children: <Widget>[
                     Expanded(
+                      flex: 10,
                       child: RaisedButton(
+                        elevation: sendingAllowed ? 4.0 : 0.0,
                         padding: EdgeInsets.symmetric(vertical: 16.0),
-                        child: Text('Envoyer à mon équipe', textAlign: TextAlign.center),
-                        color: Colors.green,
-                        onPressed: () => print('Valider'),
+                        child: Text('Faire valider', textAlign: TextAlign.center),
+                        color: sendingAllowed ? Colors.green : Colors.grey[300],
+                        onPressed: () {
+                          if(sendingAllowed){
+                            Navigator.of(context).pop(true);
+                          }
+                        },
                       ),
                     ),
+                    Expanded(child: Container()),
                     Expanded(
+                      flex: 10,
                       child: RaisedButton(
+                        elevation: 4.0,
                         padding: EdgeInsets.symmetric(vertical: 16.0),
                         child: Text('Annuler'),
-                        color: Colors.redAccent,
-                        onPressed: () => print('Annuler'),
+                        color: Colors.red[800],
+                        onPressed: () => Navigator.of(context).pop(false),
                       ),
                     ),
                   ],
                 ),
-                displayTeammates(),
-              ],
-            ),
+              ),
+              ListView.builder(
+                shrinkWrap: true,
+                itemCount: teammatesNames.length,
+                itemBuilder: (context, i) {
+                  String key = teammatesNames.keys.toList()[i];
+
+                  bool reply = teammatesNames[key];
+                  bool hasReply = reply != null;
+
+                  Icon thumbDown = Icon(Icons.thumb_down, color: Colors.red[800]);
+                  Icon thumbUp = Icon(Icons.thumb_up, color: Colors.green);
+
+                  return Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Row(
+                        children: <Widget>[
+                          Expanded(child: Text(key, textAlign: TextAlign.center)),
+                          Expanded(child: hasReply ? (reply ? thumbUp : thumbDown) : Container()),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ],
           ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.photo_camera),
-        onPressed: () async {
-          picture = null;
-          String barcode = await BarcodeScanner.scan();
-          loadImage(barcode);
-          loadTeammates();
-          setState(() => loadingImage = true);
-        },
       ),
     );
   }
 
-  void loadTeammates() async {
-    await ServiceProvider.gameService.getTeammates(globalUserGroup);
-    setState(() {
-      teammatesLoaded = true;
-    });
-  }
-
-  void loadImage(String code) async {
+  Future loadImage(String code) async {
     File file = await ServiceProvider.gameService.getImageFromCode(code);
     setState(() {
       picture = file;
@@ -94,42 +157,43 @@ class _ProposalViewState extends State<ProposalView> {
   }
 
   Widget displayImage() {
-    double size = 200.0;
+    double size = 250.0;
 
     if (picture == null && loadingImage) {
       return Container(
         width: size,
         height: size,
         padding: EdgeInsets.all(16.0),
-        child: CircularProgressIndicator(strokeWidth: 6.0),
+        child: CircularProgressIndicator(strokeWidth: 7.0),
       );
     }
 
     if (picture == null) {
-      return Container(
-        width: size,
-        height: size,
-      );
+      return Container(width: size, height: size);
     }
 
-    var timerImage = CircularTimerImage(image: picture, size: size);
-    timerImage.createState();
-    return timerImage;
-  }
-
-  Widget displayTeammates() {
-    List<DocumentReference> teammates = ServiceProvider.gameService.teammates;
-
-    if (teammatesLoaded) {
-      return ListView.builder(
-        itemBuilder: (context, i) {
-          return Card(child: Text(teammates[i].documentID));
-        },
-        itemCount: teammates.length,
-        shrinkWrap: true,
-      );
-    }
-    else
-      return Container();
+    return Container(
+      child: Stack(
+        alignment: Alignment(0, 0),
+        children: <Widget>[
+          Container(
+            width: size,
+            height: size,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              image: DecorationImage(
+                image: FileImage(picture),
+                fit: BoxFit.fill,
+              ),
+            ),
+          ),
+          Container(
+            width: size,
+            height: size,
+            child: CircularProgressIndicator(value: (value + teamBonus), strokeWidth: 7.0),
+          )
+        ],
+      ),
+    );
   }
 }
