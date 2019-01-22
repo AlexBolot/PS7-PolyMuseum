@@ -6,12 +6,12 @@ void main() {
 
   test('Empty TestCase', () async {
     var res = await TestCase().start();
-    expect(res, equals('Unknown test : SUCESS'));
+    expect(res, equals('Unknown test : SUCCESS'));
   });
 
   test('Named TestCase', () async {
     var res = await TestCase(name: 'Named Test').start();
-    expect(res, equals('Named Test : SUCESS'));
+    expect(res, equals('Named Test : SUCCESS'));
   });
 
   test('Test with Setup', () async {
@@ -22,7 +22,7 @@ void main() {
       },
     ).start();
 
-    expect(res, equals('Setup Test : SUCESS'));
+    expect(res, equals('Setup Test : SUCCESS'));
   });
 
   test('Test with Body', () async {

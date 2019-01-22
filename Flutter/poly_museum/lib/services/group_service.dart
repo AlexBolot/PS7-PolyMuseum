@@ -51,16 +51,18 @@ class GroupService {
         .setData({'prenom': name});
   }
 
-  testGroupService() {
+  /*testGroupService() {
 
     changeMuseumTarget("NiceTest");
 
     TestCase(
       name: "Adding a Member to a given group",
       body: () {
-        changeMuseumTarget("NiceTest");
+        var sizeBefore;
+        var sizeAfter;
         streamGroups(() async {
-          var sizeBefore = await museumReference
+          changeMuseumTarget("NiceTest");
+           sizeBefore = await museumReference
               .collection("GroupesVisite")
               .document("groupe1")
               .collection('Membres')
@@ -68,8 +70,10 @@ class GroupService {
               .then((data) {
             return (data.documents.length);
           });
-          addMemberToGroup("coco", "123");
-          var sizeAfter = await museumReference
+          print(museumReference.documentID);
+          await addMemberToGroup("coco", "123");
+          changeMuseumTarget("NiceTest");
+          sizeAfter = await museumReference
               .collection("GroupesVisite")
               .document("groupe1")
               .collection('Membres')
@@ -77,11 +81,15 @@ class GroupService {
               .then((data) {
             return (data.documents.length);
           });
+         // print(museumReference.documentID);
+          print(sizeBefore);
+          print("et");
+          print(sizeAfter);
           TestCase.assertTrue(sizeBefore == (sizeAfter - 1));
-          changeMuseumTarget("NiceSport");
+          //changeMuseumTarget("NiceSport");
           dispose();
         });
       },
     ).start();
-  }
+  }*/
 }

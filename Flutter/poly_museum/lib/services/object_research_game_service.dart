@@ -394,10 +394,10 @@ class ObjectResearchGameService {
 
   void disposeTimerObjectsStream() => _timerObjectsStream?.cancel();
 
-  testGameService() {
+  testGameService() async {
     changeMuseumTarget("NiceTest");
 
-    TestCase(
+    await TestCase(
       name: "Update Game Description",
       body: () {
         changeMuseumTarget("NiceTest");
@@ -410,7 +410,7 @@ class ObjectResearchGameService {
       },
     ).start();
 
-    TestCase(
+    await TestCase(
       name: "Get Team Number",
       body: () async {
         getTimerObject("1", () {
@@ -419,7 +419,7 @@ class ObjectResearchGameService {
       },
     ).start();
 
-    TestCase(
+    await TestCase(
       name: "Get Teams",
       body: () async {
         TestCase.assertTrue(teamsGame.isEmpty);
@@ -429,7 +429,7 @@ class ObjectResearchGameService {
       },
     ).start();
 
-    TestCase(
+    await TestCase(
       name: "Starting Game",
       body: () async {
         TestCase.assertFalse(gameStatusEnd);

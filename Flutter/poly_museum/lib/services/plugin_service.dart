@@ -171,14 +171,14 @@ class PluginService {
   }
 
 
-  void testStreamPluginsData() {
-    TestCase(
+  Future testStreamPluginsData() async {
+    await TestCase(
       setUp : () {
         setUpTest();
       },
       body : () {
         streamPluginsData().then((data) {
-            TestCase.assertSame(2, _plugins.length);
+            TestCase.assertSame(3, _plugins.length);
         });
       },
       after : () {

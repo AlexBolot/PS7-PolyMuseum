@@ -13,15 +13,18 @@ import 'app_builder.dart';
 void main() => runApp(MyApp());
 
 bool testing = false;
+bool testPassedInto = false;
 
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    if (testing) {
-
-      ServiceProvider.gameService.testGameService();
-      ServiceProvider.groupService.testGroupService();
+    if (testing && !testPassedInto) {
+      testPassedInto = true;
       ServiceProvider.pluginService.testStreamPluginsData();
+      ServiceProvider.gameService.testGameService();
+      //ServiceProvider.groupService.testGroupService();
+
+
     } else {
 
       ServiceProvider.groupService.streamGroups();
