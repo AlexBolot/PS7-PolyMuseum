@@ -35,7 +35,9 @@ class _VisitorHomePageState extends State<VisitorHomePage> {
                         leading: Icon(Icons.account_balance),
                         title: Text('Bienvenue au $nomMusee'),
                       ),
-                      Image(image: NetworkImage("http://www.museedusport.fr/sites/default/files/logo.png"))
+                      Image(
+                          image: NetworkImage(
+                              "http://www.museedusport.fr/sites/default/files/logo.png"))
                     ],
                   ),
                 ],
@@ -81,7 +83,9 @@ class _VisitorHomePageState extends State<VisitorHomePage> {
                       style: TextStyle(fontSize: 18.0),
                     ),
                     FlatButton(
-                      child: Text('Rejoindre', style: TextStyle(color: Colors.lightBlue.withOpacity(0.7))),
+                      child: Text('Rejoindre',
+                          style: TextStyle(
+                              color: Colors.lightBlue.withOpacity(0.7))),
                       onPressed: () => enterCode(),
                     )
                   ],
@@ -112,7 +116,8 @@ class _VisitorHomePageState extends State<VisitorHomePage> {
                     controller: nameController,
                     textCapitalization: TextCapitalization.words,
                     style: TextStyle(fontSize: 20.0, color: Colors.black),
-                    decoration: InputDecoration(hintText: 'Nom au sein du groupe'),
+                    decoration:
+                        InputDecoration(hintText: 'Nom au sein du groupe'),
                   ),
                   TextFormField(
                     controller: codeController,
@@ -140,9 +145,8 @@ class _VisitorHomePageState extends State<VisitorHomePage> {
     String name = nameController.text.trim();
     String code = codeController.text.trim();
 
-    if (name != "" && code != "") {
+    if (name != "" && code != "" && code == "E84KD") {
       ServiceProvider.groupService.addMemberToGroup(name, code);
-    } else if (code == "E84KD") {
       Navigator.of(context).pushNamed('/VisitorView');
     } else {
       await showDialog<String>(
