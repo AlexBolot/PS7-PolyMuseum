@@ -4,12 +4,15 @@ class Objects {
   DocumentReference descriptionReference;
   String description;
   String qrCode;
-  List discoveredByTeams = new List();
+  List userAndTeam = [];
   String dataBaseName;
   String downloadUrl;
+  String name;
 
-  Objects(this.descriptionReference, this.description, this.qrCode, this.downloadUrl, this.discoveredByTeams, this.dataBaseName);
+  Objects(this.descriptionReference, this.description, this.qrCode, this.downloadUrl, this.userAndTeam, this.dataBaseName,this.name);
+
 
   @override
-  String toString() => '$descriptionReference -- $description -- $qrCode -- $discoveredByTeams -- $dataBaseName';
+  String toString() =>
+      '$descriptionReference -- $description -- $qrCode -- $dataBaseName';
 }
