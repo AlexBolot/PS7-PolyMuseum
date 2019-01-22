@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:poly_museum/services/service_provider.dart';
 import 'package:poly_museum/widget_factory/enum_factory.dart';
 
@@ -8,23 +7,25 @@ class WidgetFactory {
 
   WidgetFactory(this.data);
 
-  Widget build() => _fromName(name: data['name'], params: data['params']);
+  Widget build() {
+    return _fromName(name: data['name'], params: data['params']);
+  }
 
   Widget _fromName({String name, Map params}) {
     switch (name) {
       case 'Container':
         return _container(
           colorValue: params['colorValue'] ?? 0xFFFFFF,
-          height: params['height'],
-          width: params['width'],
-          topMargin: params['topMargin'] ?? 0.0,
-          rightMargin: params['rightMargin'] ?? 0.0,
-          bottomMargin: params['bottomMargin'] ?? 0.0,
-          leftMargin: params['leftMargin'] ?? 0.0,
-          topPadding: params['topPadding'] ?? 0.0,
-          rightPadding: params['rightPadding'] ?? 0.0,
-          bottomPadding: params['bottomPadding'] ?? 0.0,
-          leftPadding: params['leftPadding'] ?? 0.0,
+          height: _doubleOrNull(params['height']),
+          width: _doubleOrNull(params['width']),
+          topMargin: (params['topMargin'] ?? 0.0) * 1.0,
+          rightMargin: (params['rightMargin'] ?? 0.0) * 1.0,
+          bottomMargin: (params['bottomMargin'] ?? 0.0) * 1.0,
+          leftMargin: (params['leftMargin'] ?? 0.0) * 1.0,
+          topPadding: (params['topPadding'] ?? 0.0) * 1.0,
+          rightPadding: (params['rightPadding'] ?? 0.0) * 1.0,
+          bottomPadding: (params['bottomPadding'] ?? 0.0) * 1.0,
+          leftPadding: (params['leftPadding'] ?? 0.0) * 1.0,
           child: params['child'] != null
               ? _fromName(name: params['child']['name'], params: params['child']['params'])
               : Container(),
@@ -34,17 +35,17 @@ class WidgetFactory {
           value: params['value'] ?? '',
           textDirection: params['textDirection'],
           colorValue: params['colorValue'] ?? 0,
-          fontSize: params['fontSize'] ?? 14.0,
+          fontSize: (params['fontSize'] ?? 14.0) * 1.0,
           textAlign: params['textAlign'],
         );
       case 'Card':
         return _card(
           colorValue: params['colorValue'] ?? 0xFFFFFF,
-          elevation: params['elevation'] ?? 1.0,
-          topMargin: params['topMargin'] ?? 0.0,
-          rightMargin: params['rightMargin'] ?? 0.0,
-          bottomMargin: params['bottomMargin'] ?? 0.0,
-          leftMargin: params['leftMargin'] ?? 0.0,
+          elevation: (params['elevation'] ?? 1.0) * 1.0,
+          topMargin: (params['topMargin'] ?? 0.0) * 1.0,
+          rightMargin: (params['rightMargin'] ?? 0.0) * 1.0,
+          bottomMargin: (params['bottomMargin'] ?? 0.0) * 1.0,
+          leftMargin: (params['leftMargin'] ?? 0.0) * 1.0,
           child: params['child'] != null
               ? _fromName(name: params['child']['name'], params: params['child']['params'])
               : Container(),
@@ -71,10 +72,10 @@ class WidgetFactory {
         );
       case 'Padding':
         return _padding(
-          topPadding: params['topPadding'] ?? 0.0,
-          rightPadding: params['rightPadding'] ?? 0.0,
-          bottomPadding: params['bottomPadding'] ?? 0.0,
-          leftPadding: params['leftPadding'] ?? 0.0,
+          topPadding: (params['topPadding'] ?? 0.0) * 1.0,
+          rightPadding: (params['rightPadding'] ?? 0.0) * 1.0,
+          bottomPadding: (params['bottomPadding'] ?? 0.0) * 1.0,
+          leftPadding: (params['leftPadding'] ?? 0.0) * 1.0,
           child: params['child'] != null
               ? _fromName(name: params['child']['name'], params: params['child']['params'])
               : Container(),
@@ -82,17 +83,17 @@ class WidgetFactory {
       case 'Image':
         return _image(
           source: params['source'] ?? 'https://bit.ly/2RXBjY1',
-          height: params['height'],
-          width: params['width'],
+          height: _doubleOrNull(params['height']),
+          width: _doubleOrNull(params['width']),
           boxFit: params['boxFit'],
         );
       case 'Button':
         return _raisedButton(
           callbackName: params['callbackName'],
-          topPadding: params['topPadding'] ?? 0.0,
-          rightPadding: params['rightPadding'] ?? 0.0,
-          bottomPadding: params['bottomPadding'] ?? 0.0,
-          leftPadding: params['leftPadding'] ?? 0.0,
+          topPadding: (params['topPadding'] ?? 0.0) * 1.0,
+          rightPadding: (params['rightPadding'] ?? 0.0) * 1.0,
+          bottomPadding: (params['bottomPadding'] ?? 0.0) * 1.0,
+          leftPadding: (params['leftPadding'] ?? 0.0) * 1.0,
           child: params['child'] != null
               ? _fromName(name: params['child']['name'], params: params['child']['params'])
               : Container(),
@@ -266,7 +267,11 @@ class WidgetFactory {
 
   //endregion
 
-  List<Widget> _childrenFromName(List<Map> children) {
+  List<Widget> _childrenFromName(List<dynamic> children) {
     return (children ?? []).map((child) => _fromName(name: child['name'], params: child['params'])).toList();
+  }
+
+  _doubleOrNull(int i) {
+    return i == null ? null : i * 1.0;
   }
 }

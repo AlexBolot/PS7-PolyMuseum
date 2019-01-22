@@ -26,9 +26,7 @@ class _GameGuideViewState extends State<GameGuideView> {
     gameService.updateResearchGameDescriptions(_refresh, globalUserGroup);
   }
 
-  VoidCallback _refresh() {
-    setState(() {});
-  }
+  _refresh() => setState(() {});
 
   @override
   void dispose() {
@@ -68,7 +66,7 @@ class _GameGuideViewState extends State<GameGuideView> {
     Map<int, String> map = new Map();
     for (String s in gameService.teamsGame) {
       List t = s.split(":");
-      map.update(int.parse(t[0]), (String) => map[int.parse(t[0])] + ", " + t[1], ifAbsent: () => t[1]);
+      map.update(int.parse(t[0]), (string) => map[int.parse(t[0])] + ", " + t[1], ifAbsent: () => t[1]);
     }
     for (int i in map.keys) {
       list.add(Card(

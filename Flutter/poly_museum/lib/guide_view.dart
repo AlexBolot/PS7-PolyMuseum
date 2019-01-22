@@ -19,9 +19,7 @@ class _GuideViewState extends State<GuideView> {
   ObjectResearchGameService gameService = ServiceProvider.gameService;
   String code = '';
 
-  VoidCallback refresh() {
-    setState(() {});
-  }
+  _refresh() => setState(() {});
 
   @override
   Widget build(BuildContext context) {
@@ -82,7 +80,7 @@ class _GuideViewState extends State<GuideView> {
           child: Text('Lancer un jeu avec le dernier groupe crée',
               style: TextStyle(color: Colors.lightBlue.withOpacity(0.7))),
           onPressed: () async {
-            gameService.startGame(refresh, currentGroupID);
+            gameService.startGame(_refresh, currentGroupID);
             moveTo('/GameGuideView');
           },
         ),

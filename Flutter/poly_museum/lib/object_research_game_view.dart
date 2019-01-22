@@ -20,9 +20,7 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
 
   ObjectResearchGameService gameService = ServiceProvider.gameService;
 
-  VoidCallback _refresh() {
-    setState(() {});
-  }
+  _refresh() => setState(() {});
 
   @override
   void initState() {

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
@@ -18,6 +19,7 @@ class PluginService {
   List<Plugin> _plugins = [];
   DocumentReference _configRef;
   Map<String, Map<String, dynamic>> _configs = {};
+  Map<String, Map<String, dynamic>> customPages = {};
 
   ///
   ///  Adds for each type of plugin the configurations for each plugins corresponding to the type
@@ -54,19 +56,20 @@ class PluginService {
 
       var plugin = Plugin.fromSnapshot(ref);
       _plugins.add(plugin);
-      print(_plugins);
+
       // Getting plugin config
+      if(plugin.config) {
+        _configRef = doc.reference.collection('config').document('current');
+        DocumentSnapshot config = await _configRef.get();
 
-      _configRef = doc.reference.collection('config').document('current');
-      DocumentSnapshot config = await _configRef.get();
+        Map<String, dynamic> configMap = {};
 
-      Map<String, dynamic> configMap = {};
+        for (String key in config.data.keys) {
+          configMap.putIfAbsent(key, () => config.data[key]);
+        }
 
-      for (String key in config.data.keys) {
-        configMap.putIfAbsent(key, () => config.data[key]);
+        _configs.putIfAbsent(plugin.type, () => configMap);
       }
-
-      _configs.putIfAbsent(plugin.type, () => configMap);
     }
   }
 
@@ -128,6 +131,14 @@ class PluginService {
       globalTheme = globalTheme.copyWith(backgroundColor: Color(background).withOpacity(1.0));
 
     appBuilder.state.rebuild();
+  }
+
+  ///
+  /// Invokes the methods from the plugins precedently loaded plugins in the application
+  ///
+  processCustomViewPlugins() async {
+    Map<String, dynamic> jsonViewData = json.decode(await pluginChannel.invokeMethod('processCustomViewPlugins'));
+    customPages.putIfAbsent('Exposition Temporaire', () => jsonViewData);
   }
 
   // For testing purpose

@@ -42,7 +42,7 @@ class _FrontViewState extends State<FrontView> {
               ),
               color: Theme.of(context).primaryColor,
               textColor: Colors.grey[300],
-              onPressed: () => moveTo('/MyHomePage'),
+              onPressed: () => moveTo('/VisitorHomePage'),
             ),
             RaisedButton(
               elevation: 4.0,

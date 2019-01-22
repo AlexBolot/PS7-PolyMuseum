@@ -9,7 +9,7 @@ class Plugin {
   String fullLocalPath;
   bool config = false;
   String libelle;
-  String museum = null;
+  String museum;
   
   Plugin(this.qualifiedName, this.downloadUrl, this.type, this.pluginName, this.config, this.libelle, [ this.museum ]) {
     this.identifier = libelle;
@@ -20,6 +20,7 @@ class Plugin {
     this.downloadUrl = snap.data['downloadUrl'];
     this.pluginName = snap.data['pluginName'];
     this.type = snap.data['type'];
+    this.config = snap.data['config'];
   }
 
   Map<String, dynamic> toMap() {
