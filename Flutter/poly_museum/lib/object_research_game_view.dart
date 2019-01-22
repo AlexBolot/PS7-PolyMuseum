@@ -93,7 +93,7 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
       List<Widget> list = [];
       list.add(card);
       list.add(card2);
-cd
+
       if (gameDuration != null && gameService.gameStatusEnd) {
         String durationStr = gameDuration.toString().split(".")[0];
         Card card3 = addNewCard("La partie à durée $durationStr");
