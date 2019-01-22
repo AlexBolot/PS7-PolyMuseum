@@ -66,7 +66,7 @@ def upload_plugin(filepath, filename, config, libelle, pluginName, qualifiedName
               'libelle' : libelle,
               'pluginName' : pluginName,
               'qualifiedName' : qualifiedName,
-              'pluginType' : pluginType })
+              'type' : pluginType })
         
 app = Flask(__name__)
 
