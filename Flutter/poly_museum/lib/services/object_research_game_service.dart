@@ -54,7 +54,11 @@ class ObjectResearchGameService {
   /// (isStarted and isFinished in the Database) corresponding to the right userGroup
   ///
   void updateGameStatus(VoidCallback callback, userGroup) {
-    _gameStatusStream = museumReference.collection("GroupesVisite").document("groupe$userGroup").snapshots().listen(
+    _gameStatusStream = museumReference
+        .collection("GroupesVisite")
+        .document("groupe$userGroup")
+        .snapshots()
+        .listen(
       (groupData) {
         _gameStatusBegin = groupData.data["isStarted"];
         _gameStatusEnd = groupData.data["isFinished"];
@@ -73,7 +77,10 @@ class ObjectResearchGameService {
        });
     }
 
-    await museumReference.collection("GroupesVisite").document("groupe$userGroup").updateData({
+    await museumReference
+        .collection("GroupesVisite")
+        .document("groupe$userGroup")
+        .updateData({
       'isFinished': false,
       'isStarted': true,
     });
@@ -111,17 +118,21 @@ class ObjectResearchGameService {
         // to add the right objects in @objectGame list and not something else.
         // Problem : if the "objet1" is deleted from the DB, the list can't add anything
         if (doc.data.keys.contains("objet1")) {
+          //key= objet1,
           Future iterateMapEntry(key, value) async {
             doc.data[key] = value;
             DocumentSnapshot ref = await value["descriptionRef"].get();
-            List teamFoundObject = value['trouveParEquipes'];
+            //TKT c'est que les autres ils écrivent dans la base et donc ils suppriment tout ton beau travail
+            //T'as juste à rajouter le membresEquipes
+            List userAndTeams = value['membresEquipes'] ?? [];
             objectsGame.add(new Objects(
               value["descriptionRef"],
               ref.data["description"],
               ref.data["barCode"],
               ref.data['downloadUrl'],
-              teamFoundObject,
+              userAndTeams,
               key,
+              ref.data["nom"]
             ));
           }
 
@@ -142,14 +153,17 @@ class ObjectResearchGameService {
   /// Updates the database when a team have found an object in the game
   /// It adds the teams number in the list of teams that have found the correct object
   ///
-  void teamFoundObject(userGroup, keyObject, description, List teamFoundObject) {
+  void teamFoundObject(userGroup, keyObject, description, List membresEquipes) {
     museumReference
         .collection("GroupesVisite")
         .document("groupe$userGroup")
         .collection("JeuRechercheObjet")
         .document("Objets")
         .updateData({
-      keyObject: {'descriptionRef': description, 'trouveParEquipes': teamFoundObject}
+      keyObject: {
+        'descriptionRef': description,
+        'membresEquipes': membresEquipes
+      }
     });
   }
 
@@ -208,8 +222,10 @@ class ObjectResearchGameService {
     for (int i = 0; i < numberTeams; i++) {
       int nbObjetsParEquipe = 0;
       for (Objects o in objectsGame) {
-        if (o.discoveredByTeams.contains(i.toString())) {
-          nbObjetsParEquipe++;
+        for(dynamic personsFoundObject in o.userAndTeam) {
+          if(personsFoundObject["equipeID"] == i.toString() ?? false){
+            nbObjetsParEquipe++;
+          }
         }
         if (nbObjects == nbObjetsParEquipe) {
           return i;
@@ -240,6 +256,30 @@ class ObjectResearchGameService {
 
       callback();
     });
+  }
+
+  Future<String> getFoundObjectInfo(
+      Objects object, String userGroup, String userTeam) async {
+    //Rajouter une photo peut etre ?
+    String result = "";
+    String userID;
+    String username;
+    for (dynamic v in object.userAndTeam) {
+      if (v["equipeID"] == userTeam) {
+        userID = v["membreID"];
+      }
+    }
+
+    DocumentSnapshot snap = await museumReference
+        .collection("GroupesVisite")
+        .document("groupe$userGroup")
+        .collection("Membres")
+        .document("membre$userID")
+        .get();
+    username = snap.data["prenom"];
+
+    result = "Il s'agissait de : " + object.name + " trouvé par $username";
+    return result;
   }
 
   Future<File> getImageFromCode(String code) async {

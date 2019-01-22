@@ -22,6 +22,7 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
   String userGroup = globalUserGroup;
   String userTeam = globalUserTeam;
   String userName = globalUserName;
+  String discover = "un membre de votre équipe";
   Duration gameDuration = null;
 
   ObjectResearchGameService gameService = ServiceProvider.gameService;
@@ -36,6 +37,7 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
     gameService.getTeammates(globalUserGroup);
     gameService.updateResearchGameDescriptions(_refresh, userGroup);
     gameService.updateGameStatus(_refresh, userGroup);
+    //gameService.getFoundObjectInfo(, userGroup, userTeam, _refresh)
   }
 
   @override
@@ -49,7 +51,6 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
   Widget build(BuildContext context) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (gameService.timerObject != null && gameService.gameStatusBegin && !gameService.hasAnsweredTimerObject) {
-        print(gameService.timerObject.toString());
         displayObjectSentTeamMate();
       }
     });
@@ -104,12 +105,18 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
     } else {
       if (gameService.gameStatusBegin) {
         return gameService.objectsGame.map((object) {
+          bool foundTeam = false;
           return GestureDetector(
             onTap: () {
-              if (object.discoveredByTeams.contains(userTeam)) {
-                displayObjectAlreadyFound();
-              } else {
+              for( dynamic v in object.userAndTeam){
+                if (v["equipeID"] == (userTeam)) {
+                  displayObjectAlreadyFound(object);
+                  foundTeam = true;
+                }
+              }
+              if(!foundTeam){
                 scan(object);
+                foundTeam = false;
               }
             },
             child: Card(
@@ -143,16 +150,20 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
       setState(() => this.barcode = barcode);
     } on PlatformException catch (e) {
       if (e.code == BarcodeScanner.CameraAccessDenied) {
-        this.barcode = 'The user did not grant the camera permission!';
+        this.barcode = null;
+        print('The user did not grant the camera permission!');
       } else {
-        this.barcode = 'Unknown error: $e';
+        this.barcode = null;
+        print('Unknown error: $e');
       }
     } on FormatException {
-      this.barcode = 'null (User returned using the "back"-button before scanning anything. Result)';
+      this.barcode = null;
+      print('null (User returned using the "back"-button before scanning anything. Result)' );
     } catch (e) {
-      this.barcode = 'Unknown error: $e';
+      this.barcode = null;
+      print('Unknown error: $e');
     }
-    List objectFound;
+    List membersTeams = [];
     var keyObject;
     var correctObjectFound = false;
 
@@ -160,18 +171,20 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
 
     bool result = await Navigator.of(context).push(MaterialPageRoute(builder: (context) => ProposalView(barcode)));
 
-    if (result != null && result == true) {
-      if (object.qrCode == this.barcode) {
-        objectFound = new List.from(object.discoveredByTeams);
-        objectFound.add(this.userTeam);
-        keyObject = object.dataBaseName;
-        correctObjectFound = true;
-      }
+    if (result != null && result == true) {if (object.qrCode == this.barcode) {
+      //TODO put back here
+      membersTeams.addAll(object.userAndTeam);
+      membersTeams.add({"equipeID": userTeam, "membreID": globalUserID});
+      /*objectFound = new List.from(object.userAndTeam.values);
+      objectFound.add(this.userTeam);*/
+      keyObject = object.dataBaseName;
+      correctObjectFound = true;}
     }
 
     Future.delayed(new Duration(seconds: 1), () {
       if (correctObjectFound) {
-        gameService.teamFoundObject(userGroup, keyObject, object.descriptionReference, objectFound);
+        gameService.teamFoundObject(userGroup, keyObject,
+            object.descriptionReference, membersTeams);
       }
       displayResult(correctObjectFound);
     });
@@ -180,8 +193,10 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
   ///Method used to change the color of a description when a object is found
   chooseColor(Objects object) {
     var color = Color.fromARGB(255, 255, 255, 255);
-    if (object.discoveredByTeams != null && object.discoveredByTeams.contains(userTeam)) {
-      color = Color.fromARGB(255, 50, 200, 50);
+    for (dynamic v in object.userAndTeam) {
+      if (object.userAndTeam.isNotEmpty && v["equipeID"] == (userTeam)) {
+        color = Color.fromARGB(255, 50, 200, 50);
+      }
     }
     return color;
   }
@@ -203,12 +218,13 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
     );
   }
 
-  void displayObjectAlreadyFound() {
+  void displayObjectAlreadyFound(Objects object) async {
+    String m = await gameService.getFoundObjectInfo(object, userGroup, userTeam);
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text("L'objet sélectionné à déjà été trouvé par un coéquipier !"),
+          title: Text(m),
           actions: <Widget>[
             FlatButton(
               onPressed: () => Navigator.of(context).pop(),
@@ -280,7 +296,9 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
   }
 
   String textResult(result) {
-    return result ? "Bonne réponse ! Vous avez trouvé" : "Mauvaise réponse ! Continuez de chercher";
+    return result
+        ? "Bonne réponse ! Vous avez trouvé"
+        : "Mauvaise réponse ! Continuez de chercher";
   }
 
   void loadImage(String code) async {
