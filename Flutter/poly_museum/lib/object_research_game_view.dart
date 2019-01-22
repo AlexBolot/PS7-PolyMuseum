@@ -49,7 +49,6 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
   Widget build(BuildContext context) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (gameService.timerObject != null && gameService.gameStatusBegin && !gameService.hasAnsweredTimerObject) {
-        print(gameService.timerObject.toString());
         displayObjectSentTeamMate();
       }
     });
@@ -80,25 +79,32 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
         }
       }
 
-      String duration = gameService.gameDuration.toString();
+      /*String duration = gameService.gameDuration.toString();
       duration = duration.split(".")[0];
 
-      Card card3 = addNewCard("La partie à durée $duration");
+      Card card3 = addNewCard("La partie à durée $duration");*/
 
       List<Widget> list = [];
       list.add(card);
       list.add(card2);
-      list.add(card3);
+      //list.add(card3);
       return list;
     } else {
       if (gameService.gameStatusBegin) {
         return gameService.objectsGame.map((object) {
+          bool foundTeam = false;
           return GestureDetector(
             onTap: () {
-              if (object.userAndTeam.values.contains(userTeam)) {
-                displayObjectAlreadyFound(object);
-              } else {
+              //TODO put back here
+              for( dynamic v in object.userAndTeam){
+                if (v["equipeID"] == (userTeam)) {
+                  displayObjectAlreadyFound(object);
+                  foundTeam = true;
+                }
+              }
+              if(!foundTeam){
                 scan(object);
+                foundTeam = false;
               }
             },
             child: Card(
@@ -132,17 +138,20 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
       setState(() => this.barcode = barcode);
     } on PlatformException catch (e) {
       if (e.code == BarcodeScanner.CameraAccessDenied) {
-        this.barcode = 'The user did not grant the camera permission!';
+        this.barcode = null;
+        print('The user did not grant the camera permission!');
       } else {
-        this.barcode = 'Unknown error: $e';
+        this.barcode = null;
+        print('Unknown error: $e');
       }
     } on FormatException {
-      this.barcode =
-          'null (User returned using the "back"-button before scanning anything. Result)';
+      this.barcode = null;
+      print('null (User returned using the "back"-button before scanning anything. Result)' );
     } catch (e) {
-      this.barcode = 'Unknown error: $e';
+      this.barcode = null;
+      print('Unknown error: $e');
     }
-    Map membersTeams;
+    List membersTeams = [];
     var keyObject;
     var correctObjectFound = false;
 
@@ -151,8 +160,9 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
     bool result = await Navigator.of(context).push(MaterialPageRoute(builder: (context) => ProposalView(barcode)));
 
     if (result != null && result == true) {if (object.qrCode == this.barcode) {
-      membersTeams = new Map.from(object.userAndTeam);
-      membersTeams.putIfAbsent(userName, () => userTeam);
+      //TODO put back here
+      membersTeams.addAll(object.userAndTeam);
+      membersTeams.add({"equipeID": userTeam, "membreID": globalUserID});
       /*objectFound = new List.from(object.userAndTeam.values);
       objectFound.add(this.userTeam);*/
       keyObject = object.dataBaseName;
@@ -171,8 +181,11 @@ class _ObjectResearchGameViewState extends State<ObjectResearchGameView> {
   ///Method used to change the color of a description when a object is found
   chooseColor(Objects object) {
     var color = Color.fromARGB(255, 255, 255, 255);
-    if (object.userAndTeam.isNotEmpty && object.userAndTeam.values.contains(userTeam)) {
-      color = Color.fromARGB(255, 50, 200, 50);
+    //TODO put back here
+    for (dynamic v in object.userAndTeam) {
+      if (object.userAndTeam.isNotEmpty && v["equipeID"] == (userTeam)) {
+        color = Color.fromARGB(255, 50, 200, 50);
+      }
     }
     return color;
   }

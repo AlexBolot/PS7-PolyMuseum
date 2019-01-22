@@ -38,7 +38,7 @@ class ObjectResearchGameService {
   DateTime _startDateTime;
   DateTime _endDateTime;
 
-  Duration get gameDuration => _gameStatusEnd ? _endDateTime.difference(_startDateTime) : null;
+  //Duration get gameDuration => _gameStatusEnd ? _endDateTime.difference(_startDateTime) : null;
 
   ///
   /// This method streams the values from game status, whether it is began or finished
@@ -109,30 +109,18 @@ class ObjectResearchGameService {
           Future iterateMapEntry(key, value) async {
             doc.data[key] = value;
             DocumentSnapshot ref = await value["descriptionRef"].get();
-            Map<String, String> userAndTeams = new Map();
             //TKT c'est que les autres ils écrivent dans la base et donc ils suppriment tout ton beau travail
             //T'as juste à rajouter le membresEquipes
-            List v = value['membresEquipes'] ?? [];
-            //print(v.toString());
-            for (int i = 0; i < v.length; i++) {
-              userAndTeams.update(
-                  v[i]["membreID"], (String) => v[i]["equipeID"],
-                  ifAbsent: () => v[i]["equipeID"]);
-            }
+            List userAndTeams = value['membresEquipes'] ?? [];
             objectsGame.add(new Objects(
               value["descriptionRef"],
               ref.data["description"],
               ref.data["barCode"],
               ref.data['downloadUrl'],
-              teamFoundObject,
+              userAndTeams,
               key,
+              ref.data["nom"]
             ));
-            /*    value["descriptionRef"],
-                ref.data["description"],
-                ref.data["barCode"],
-                userAndTeams,
-                key,
-                ref.data["nom"]));*/
           }
 
           for (String s in doc.data.keys) {
@@ -152,7 +140,7 @@ class ObjectResearchGameService {
   /// Updates the database when a team have found an object in the game
   /// It adds the teams number in the list of teams that have found the correct object
   ///
-  void teamFoundObject(userGroup, keyObject, description, Map membresEquipes) {
+  void teamFoundObject(userGroup, keyObject, description, List membresEquipes) {
     museumReference
         .collection("GroupesVisite")
         .document("groupe$userGroup")
@@ -221,8 +209,14 @@ class ObjectResearchGameService {
     for (int i = 0; i < numberTeams; i++) {
       int nbObjetsParEquipe = 0;
       for (Objects o in objectsGame) {
-        if (o.userAndTeam.containsKey(i.toString()) ?? false) {
-          nbObjetsParEquipe++;
+        //TODO put back here
+        for(dynamic personsFoundObject in o.userAndTeam) {
+          if(personsFoundObject["equipeID"] == i.toString() ?? false){
+            nbObjetsParEquipe++;
+          }
+         /* if (o.userAndTeam.containsKey(i.toString()) ?? false) {
+            nbObjetsParEquipe++;
+          }*/
         }
         if (nbObjects == nbObjetsParEquipe) {
           return i;
@@ -261,9 +255,10 @@ class ObjectResearchGameService {
     String result = "";
     String userID;
     String username;
-    for (MapEntry<String, String> v in object.userAndTeam.entries.toList()) {
-      if (v.value == userTeam) {
-        userID = v.key;
+    //todo put back here
+    for (dynamic v in object.userAndTeam) {
+      if (v["equipeID"] == userTeam) {
+        userID = v["membreID"];
       }
     }
 
