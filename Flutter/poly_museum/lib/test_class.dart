@@ -18,7 +18,7 @@ class TestCase {
       await setUp();
       await body();
       await after();
-      result = '$name : SUCESS';
+      result = '$name : SUCCESS';
     } catch (error) {
       result = '$name : FAILED : $error';
     }
