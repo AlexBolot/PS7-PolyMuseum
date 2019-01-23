@@ -20,8 +20,8 @@ import io.flutter.app.FlutterActivity;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugins.GeneratedPluginRegistrant;
 
+import static com.sdk.makers.Plugin.PluginType.CUSTOM_VIEW_PLUGIN;
 import static com.sdk.makers.Plugin.PluginType.THEME_PLUGIN;
-
 
 @SuppressWarnings("ConstantConditions")
 public class MainActivity extends FlutterActivity {
@@ -48,6 +48,7 @@ public class MainActivity extends FlutterActivity {
                     }
 
                     themeExtensionPoint.addConfig(THEME_PLUGIN, configs.get(THEME_PLUGIN));
+                    customViewExtensionPoint.addConfig(CUSTOM_VIEW_PLUGIN, configs.get(CUSTOM_VIEW_PLUGIN));
 
                     result.success(null);
 
@@ -91,7 +92,7 @@ public class MainActivity extends FlutterActivity {
 
                     Map<String, Object> map = customViewExtensionPoint.processPlugins();
 
-                    for(String name : map.keySet()){
+                    for (String name : map.keySet()) {
                         List<JSONObject> jsonList = (List<JSONObject>) map.get(name);
                         JSONObject json = jsonList.get(0);
 
@@ -100,6 +101,11 @@ public class MainActivity extends FlutterActivity {
                         result.success(json.toString());
                     }
 
+                    break;
+
+                case "customViewMethodCall":
+                    customViewExtensionPoint.broadCastTrigger((String) methodCall.arguments);
+                    result.success(true);
                     break;
             }
         });

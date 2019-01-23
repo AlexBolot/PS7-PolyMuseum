@@ -56,12 +56,15 @@ class PluginService {
 
       var plugin = Plugin.fromSnapshot(ref);
       _plugins.add(plugin);
+
       // Getting plugin config
-      if(plugin.config) {
+      if (plugin.config) {
         _configRef = doc.reference.collection('config').document('current');
         DocumentSnapshot config = await _configRef.get();
 
         Map<String, dynamic> configMap = {};
+
+        if (config.data == null) continue;
 
         for (String key in config.data.keys) {
           configMap.putIfAbsent(key, () => config.data[key]);
@@ -149,44 +152,38 @@ class PluginService {
 
     PluginDAO pluginDAO = new PluginDAO();
     this.plugin = new Plugin(
-      'pa.ck.age.PluginClass',
-      'https://firebasestorage.googleapis.com/v0/b/polymuseum-ps7.appspot.com/o/Plugins%2Fplugin_foo-0.2.jar?alt=media&token=837d73c6-8267-4f6a-bb29-11ce95f90051',
-      'foo',
-      'plugin.jar',
-      false,
-      'plugin',
-      DBStructure.test_museum_document);
+        'pa.ck.age.PluginClass',
+        'https://firebasestorage.googleapis.com/v0/b/polymuseum-ps7.appspot.com/o/Plugins%2Fplugin_foo-0.2.jar?alt=media&token=837d73c6-8267-4f6a-bb29-11ce95f90051',
+        'foo',
+        'plugin.jar',
+        false,
+        'plugin',
+        DBStructure.test_museum_document);
 
     this.plugin2 = new Plugin(
-      'pa.ck.age.Plugin2Class',
-      'https://firebasestorage.googleapis.com/v0/b/polymuseum-ps7.appspot.com/o/Plugins%2Fplugin_foo-0.2.jar?alt=media&token=837d73c6-8267-4f6a-bb29-11ce95f90051',
-      'bar',
-      'plugin2.jar',
-      false,
-      'plugin2',
-      DBStructure.test_museum_document);
+        'pa.ck.age.Plugin2Class',
+        'https://firebasestorage.googleapis.com/v0/b/polymuseum-ps7.appspot.com/o/Plugins%2Fplugin_foo-0.2.jar?alt=media&token=837d73c6-8267-4f6a-bb29-11ce95f90051',
+        'bar',
+        'plugin2.jar',
+        false,
+        'plugin2',
+        DBStructure.test_museum_document);
 
     pluginDAO.insert(plugin);
     pluginDAO.insert(plugin2);
   }
 
-
   void testStreamPluginsData() {
     TestCase(
-      setUp : () {
+      setUp: () {
         setUpTest();
       },
-      body : () {
+      body: () {
         streamPluginsData().then((data) {
-            TestCase.assertSame(2, _plugins.length);
+          TestCase.assertSame(2, _plugins.length);
         });
       },
-      after : () {
-
-      }
+      after: () {},
     ).start();
   }
-
-
 }
-
